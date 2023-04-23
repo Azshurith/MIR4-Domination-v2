@@ -7,6 +7,7 @@ import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
 import AccountLinkController from "../controllers/AccountLinkController.js";
 import AccountUnlinkController from "../controllers/AccountUnlinkController.js";
+import AccountTicketController from "../controllers/AccountTicketController.js";
 
 @Discord()
 export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
@@ -15,8 +16,8 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
         const verificationEmbed: string = await HDiscordConfig.loadDbConfig(`mir4.server.embed.verification`)
         if (!verificationEmbed) {
-            const serverName: string = await HDiscordConfig.loadEnvConfig(`discord.server.name`)
-            const channelName: string = await HDiscordConfig.loadEnvConfig(`discord.server.channel.verification`)
+            const serverName: string = HDiscordConfig.loadEnv(`discord.server.name`)
+            const channelName: string = HDiscordConfig.loadEnv(`discord.server.channel.verification`)
             const channel = HDiscordBot.getSpecificServerTextChannelByName(client, serverName, channelName) as TextChannel
 
             const embed = new EmbedBuilder()
@@ -39,7 +40,7 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
                 )
                 .addComponents(new ButtonBuilder()
                     .setLabel("Open a Ticket")
-                    .setCustomId("unlinkAccountTicket")
+                    .setCustomId("ticketAccountButton")
                     .setStyle(ButtonStyle.Secondary)
                     .setEmoji("✉️")
                 )
@@ -54,6 +55,7 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             })
 
             await HDiscordConfig.loadDbConfig(`mir4.server.embed.verification`, message.id)
+            await HDiscordConfig.loadDbConfig(`discord.server.channel.ticket.count`, "1")
         }
     }
 
@@ -175,4 +177,83 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
         }
         return;
     }
+
+    /**
+     * Executes the link command to link a MIR4 account to a Discord account.
+     * 
+     * @param {ButtonInteraction} interaction - The interaction object representing the command invocation.
+     * @returns {Promise<void>}
+     * @throws {Error} - If an error occurs while executing the command.
+     */
+    @ButtonComponent({ id: "ticketAccountButton" })
+    ticketAccountButton(interaction: ButtonInteraction): void {
+        const modal: ModalBuilder = new ModalBuilder()
+            .setTitle(`Open a ticket`)
+            .setCustomId("ticketAccountModal");
+
+        const ticketUsername: TextInputBuilder = new TextInputBuilder()
+            .setCustomId("ticketUsername")
+            .setLabel("Your character's name")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder("Character Name")
+            .setRequired(true)
+
+        const ticketServer: TextInputBuilder = new TextInputBuilder()
+            .setCustomId("ticketServer")
+            .setLabel("Your character's server")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder("Server Name")
+            .setRequired(true)
+
+        const ticketDescription: TextInputBuilder = new TextInputBuilder()
+            .setCustomId("ticketDescription")
+            .setLabel("Details of ownership")
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder("Description")
+            .setRequired(true)
+            .setMinLength(10)
+            .setMaxLength(1000)
+
+        const row1 = new ActionRowBuilder<TextInputBuilder>()
+            .addComponents(ticketUsername);
+
+        const row2 = new ActionRowBuilder<TextInputBuilder>()
+            .addComponents(ticketServer);
+
+        const row3 = new ActionRowBuilder<TextInputBuilder>()
+            .addComponents(ticketDescription);
+
+        modal.addComponents(row1, row2, row3);
+
+        interaction.showModal(modal);
+    }
+
+    /**
+     * A modal component that tickets a Mir4 character to a Discord account.
+     * 
+     * @param {ModalSubmitInteraction} interaction - The interaction object received from Discord.
+     * @returns {Promise<void>} - Promise that resolves to void when the function completes.
+     * @throws {Error} - Throws an error if an exception occurs during execution.
+     */
+    @ModalComponent()
+    async ticketAccountModal(interaction: ModalSubmitInteraction): Promise<void> {
+        try {
+            const [ticketUsername, ticketServer, ticketDescription] = ["ticketUsername", "ticketServer", "ticketDescription"].map((id) =>
+                interaction.fields.getTextInputValue(id)
+            );
+
+            await new AccountTicketController(interaction.client).fetch({
+                params: {
+                    characterName: ticketUsername,
+                    serverName: ticketServer,
+                    description: ticketDescription,
+                    interaction: interaction
+                }
+            })
+        } catch (error) {
+            CLogger.error(`An exception has occured in Ticket Command: ${error}`)
+        }
+        return;
+    }
+
 }

@@ -227,4 +227,14 @@ export default class HDiscordBot {
         return `<@${userId}>`;
     }
 
+    /**
+     * Returns a string representation of a Discord channel mention.
+     * 
+     * @param {string} channelId The ID of the channel to mention.
+     * @returns {string} The string representation of the channel mention.
+     */
+    static tagChannel(channelId: string): string {
+        return `<#${channelId}>`;
+    }
+
 }
