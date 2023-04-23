@@ -1,75 +1,90 @@
-import { BelongsTo, Column, DataType, Model, Sequelize, Table } from 'sequelize-typescript'
-import Mir4Character from './Character.js';
-import Mir4Clan from './Clan.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4Character } from "./Character.js"
+import { Mir4Clan } from "./Clan.js"
 
 /**
- * A class representing the MIR4 character clan model.
- * 
+ * A class representing the MIR4 CharacterClan model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_characters_clans',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4CharacterClan extends Model {
+@Entity(`mir4_characters_clans`)
+export class Mir4CharacterClan extends BaseEntity {
 
     /**
-     * Character.
+     * The unique identifier of the CharacterClan
+     * 
+     * @type {number}
      */
-    @BelongsTo(() => Mir4Character, {
-        foreignKey: "character_id",
-        as: "character",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    character!: Awaited<Mir4Character>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `CharacterClan Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Clan.
+     * Many-to-One relationship between Mir4Character and Mir4CharacterClan entities.
+     * 
+     * @type {Mir4Character}
      */
-    @BelongsTo(() => Mir4Clan, {
-        foreignKey: "clan_id",
-        as: "clan",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    clan!: Awaited<Mir4Clan>;
+    @ManyToOne((type) => Mir4Character, (Mir4Character: Mir4Character) => Mir4Character.character_clans)
+    @JoinColumn({ name: "character_id", referencedColumnName: "id", foreignKeyConstraintName: "characterclan_character" })
+    character!: Relation<Mir4Character>
 
     /**
-     * Character ID.
+     * Many-to-One relationship between Mir4Character and Mir4CharacterClan entities.
+     * 
+     * @type {Mir4Character}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        allowNull: false,
-        comment: "Character ID"
-    })
+    @ManyToOne((type) => Mir4Clan, (Mir4Clan: Mir4Clan) => Mir4Clan.character_clans)
+    @JoinColumn({ name: "clan_id", referencedColumnName: "id", foreignKeyConstraintName: "characterclan_clan" })
+    clan!: Relation<Mir4Clan>
+
+    /**
+     * The character id of the CharacterClan
+     * 
+     * @type {number}
+     */
+    @Column({ nullable: false, unsigned: true, comment: `CharacterClan Character ID`, type: 'bigint' })
     character_id!: number
 
     /**
-     * Clan ID.
+     * The clan id of the CharacterClan
+     * 
+     * @type {number}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: false,
-        allowNull: false,
-        comment: "Clan ID"
-    })
+    @Column({ nullable: false, unsigned: true, comment: `CharacterClan Clan ID`, type: 'bigint' })
     clan_id!: number
 
     /**
-     * Last Checked
+     * The character id of the CharacterClan
+     * 
+     * @type {boolean}
      */
-    @Column({
-        type: DataType.DATE(),
-        allowNull: false,
-        unique: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        comment: "Last Checked"
-    })
-    checked_at!: string
+    @Column({ nullable: false, unsigned: true, comment: `CharacterClan Leave Indicator`, type: 'boolean' })
+    is_leave!: boolean
+
+    /**
+     * The timestamp when the CharacterClan was last checked
+     * 
+     * @type {Date}
+     */
+    @Column({ nullable: false, unique: false, comment: `CharacterClan Checked At` })
+    checked_at!: Date
+
+    /**
+     * The timestamp when the CharacterClan was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `CharacterClan Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the CharacterClan was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `CharacterClan Updated At` })
+    updated_at!: Date
 
 }

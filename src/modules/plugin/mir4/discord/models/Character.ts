@@ -1,102 +1,89 @@
-import { Column, DataType, HasMany, Model, Sequelize, Table } from 'sequelize-typescript'
-import Mir4CharacterClan from './CharacterClan.js';
-import Mir4CharacterClass from './CharacterClass.js';
-import Mir4CharacterServer from './CharacterServer.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4CharacterClan } from "./CharacterClan.js"
+import { Mir4CharacterClass } from "./CharacterClass.js"
+import { Mir4CharacterServer } from "./CharacterServer.js"
 
 /**
- * A class representing the MIR4 character model.
- * 
+ * A class representing the MIR4 Character model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_characters',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4Character extends Model {
+@Entity(`mir4_characters`, { engine: 'InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_bin' })
+export class Mir4Character extends BaseEntity {
 
     /**
-     * Clans.
+     * The unique identifier of the Character data
+     * 
+     * @type {number}
      */
-    @HasMany(() => Mir4CharacterClan, {
-        foreignKey: "character_id",
-        as: "characterclans",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    characterclans!: Awaited<Mir4CharacterClan>;
+    @PrimaryGeneratedColumn({ unsigned: true })
+    id!: number
 
     /**
-     * Classes.
+     * One-to-Many relationship between Mir4Character and Mir4CharacterClan entities.
+     * 
+     * @type {Mir4CharacterClan[]}
      */
-    @HasMany(() => Mir4CharacterClass, {
-        foreignKey: "character_id",
-        as: "characterclasses",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    characterclasses!: Awaited<Mir4CharacterClass>;
+    @OneToMany((type) => Mir4CharacterClan, (Mir4CharacterClan: Mir4CharacterClan) => Mir4CharacterClan.character)
+    character_clans!: Relation<Mir4CharacterClan[]>
 
     /**
-     * Servers.
+     * One-to-Many relationship between Mir4Character and Mir4CharacterClass entities.
+     * 
+     * @type {Mir4CharacterClass[]}
      */
-    @HasMany(() => Mir4CharacterServer, {
-        foreignKey: "character_id",
-        as: "characterserver",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    characterserver!: Awaited<Mir4CharacterServer>;
+    @OneToMany((type) => Mir4CharacterClass, (Mir4CharacterClass: Mir4CharacterClass) => Mir4CharacterClass.character)
+    character_classes!: Relation<Mir4CharacterClass[]>
 
     /**
-     * Character ID.
+     * One-to-Many relationship between Mir4Character and Mir4CharacterServer entities.
+     * 
+     * @type {Mir4CharacterServer[]}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Character ID"
-    })
-    character_id!: number
+    @OneToMany((type) => Mir4CharacterServer, (Mir4CharacterServer: Mir4CharacterServer) => Mir4CharacterServer.character)
+    character_servers!: Relation<Mir4CharacterServer[]>
 
     /**
-     * Username.
+     * The username of the Character
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.STRING(1000),
-        allowNull: false,
-        unique: true,
-        defaultValue: ``,
-        comment: "Username"
-    })
+    @Column({ type: `varchar`, length: `62`, nullable: false, readonly: true, unique: true, comment: `Character Username` })
     username!: string
 
     /**
-     * Power Score.
+     * The power score of the Character
+     * 
+     * @type {number}
      */
-    @Column({
-        type: DataType.INTEGER(),
-        allowNull: false,
-        defaultValue: 0,
-        comment: "Power Score"
-    })
+    @Column({ nullable: false, unique: false, comment: `Character Power Score` })
     powerscore!: number
 
     /**
-     * Last Checked
+     * The timestamp when the Character was last checked
+     * 
+     * @type {Date}
      */
-    @Column({
-        type: DataType.DATE(),
-        allowNull: false,
-        unique: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        comment: "Last Checked"
-    })
-    checked_at!: string
+    @Column({ nullable: false, unique: false, comment: `Character Checked At` })
+    checked_at!: Date
+
+    /**
+     * The timestamp when the Character was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Character Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Character was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Character Updated At` })
+    updated_at!: Date
 
 }

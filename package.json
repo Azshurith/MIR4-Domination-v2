@@ -7,9 +7,9 @@
   "scripts": {
     "build": "tsc",
     "build:changelog": "npx @discordx/changelog --src src",
-    "dev": "ts-node-esm src/main.ts",
-    "start": "node build/main.js",
-    "watch": "nodemon --exec ts-node-esm src/main.ts"
+    "dev": "ts-node-esm src/Core.ts",
+    "start": "node build/Core.js",
+    "watch": "nodemon --exec ts-node-esm src/Core.ts"
   },
   "repository": {
     "type": "git",
@@ -40,13 +40,14 @@
     "discordx": "^11.7.4",
     "dotenv": "^16.0.3",
     "mariadb": "^3.1.1",
+    "mysql": "^2.18.1",
     "node-cron": "^3.0.2",
     "orm": "^7.1.0",
     "p-limit": "^4.0.0",
     "query-string": "^8.1.0",
-    "sequelize-typescript": "^2.1.5",
-    "sqlite3": "^5.1.6",
+    "reflect-metadata": "^0.1.13",
     "steamapi": "^2.2.0",
+    "typeorm": "^0.3.15",
     "winston": "^3.8.2"
   },
   "overrides": {
@@ -55,7 +56,7 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.1",
     "@types/lodash": "^4.14.192",
-    "@types/node": "^18.13.0",
+    "@types/node": "^18.15.13",
     "@types/node-cron": "^3.0.7",
     "@types/steamapi": "^2.2.2",
     "nodemon": "^2.0.20",

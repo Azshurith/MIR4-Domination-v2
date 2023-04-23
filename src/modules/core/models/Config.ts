@@ -1,55 +1,76 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { IConfig } from "../interface/models/IConfig";
 
 /**
- * A class representing the Discord Config character model.
- * 
+ * A class representing the Discord Config model
+ *
  * @version 1.0.0
  * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'discord_config',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class DiscordConfig extends Model {
+@Entity(`discord_config`)
+export class DiscordConfig extends BaseEntity {
 
     /**
-     * Config ID.
+     * The unique identifier of the Discord config
+     * 
+     * @type {number}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Config ID"
-    })
-    config_id!: number
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `Config ID` })
+    id!: number
 
     /**
-     * Path.
+     * The path of the Discord config
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.STRING(1000),
-        allowNull: false,
-        unique: true,
-        defaultValue: ``,
-        comment: "Path"
-    })
+    @Column({ type: `varchar`, length: `62`, nullable: false, readonly: true, unique: true, comment: `Config Path` })
     path!: string
 
     /**
-     * Value.
+     * The value of the Discord config
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.STRING(1000),
-        allowNull: false,
-        unique: false,
-        defaultValue: ``,
-        comment: "Value"
-    })
+    @Column({ nullable: false, comment: `Config Value` })
     value!: string
+
+    /**
+     * The timestamp when the Discord config was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Config Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Discord config was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Config Updated At` })
+    updated_at!: Date
+
+    /**
+     * The timestamp when the Discord config was deleted
+     * 
+     * @type {Date}
+     */
+    @DeleteDateColumn({ comment: `Config Deleted At` })
+    deleted_at!: Date
+
+    /**
+     * Returns an object with the Discord config's properties
+     * 
+     * @returns {IConfig} - Returns an object with the Discord config's properties
+     */
+    properties(): IConfig {
+        return {
+            id: this.id,
+            path: this.path,
+            value: this.value
+        };
+    }
 
 }

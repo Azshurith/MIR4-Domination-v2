@@ -1,90 +1,72 @@
-import { BelongsTo, Column, DataType, HasMany, Model, Sequelize, Table } from 'sequelize-typescript'
-import Mir4CharacterClan from './CharacterClan.js';
-import Mir4Server from './Server.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4CharacterClan } from "./CharacterClan.js"
+import { Mir4ClanServer } from "./ClanServer.js"
 
 /**
- * A class representing the MIR4 clan model.
- * 
+ * A class representing the MIR4 Clan model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_clans',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4Clan extends Model {
+@Entity(`mir4_clans`, { engine: 'InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_bin' })
+export class Mir4Clan extends BaseEntity {
 
     /**
-     * CharacterServer.
+     * The unique identifier of the Clan data
+     * 
+     * @type {number}
      */
-    @HasMany(() => Mir4CharacterClan, {
-        foreignKey: "clan_id",
-        as: "characterclan",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    characterclan!: Awaited<Mir4CharacterClan>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `Clan Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Server.
+     * One-to-Many relationship between Mir4Character and Mir4CharacterClan entities.
+     * 
+     * @type {Mir4CharacterClan[]}
      */
-    @BelongsTo(() => Mir4Server, {
-        foreignKey: "server_id",
-        as: "server",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    server!: Awaited<Mir4Server>;
+    @OneToMany((type) => Mir4CharacterClan, (Mir4CharacterClan: Mir4CharacterClan) => Mir4CharacterClan.clan)
+    character_clans!: Relation<Mir4CharacterClan[]>
 
     /**
-     * Clan ID.
+     * One-to-Many relationship between Mir4Character and Mir4ClanServer entities.
+     * 
+     * @type {Mir4ClanServer[]}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Clan ID"
-    })
-    clan_id!: number
+    @OneToMany((type) => Mir4ClanServer, (Mir4ClanServer: Mir4ClanServer) => Mir4ClanServer.clan)
+    clan_servers!: Relation<Mir4ClanServer[]>
 
     /**
-     * Server ID
+     * The name of the Clan
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: false,
-        allowNull: false,
-        comment: "Server ID"
-    })
-    server_id!: number
-
-    /**
-     * Name
-     */
-    @Column({
-        type: DataType.STRING(1000),
-        allowNull: false,
-        unique: true,
-        defaultValue: ``,
-        comment: "Name"
-    })
+    @Column({ nullable: false, unique: false, comment: `Clan Name` })
     name!: string
 
     /**
-     * Last Checked
+     * The timestamp when the Clan was last checked
+     * 
+     * @type {Date}
      */
-    @Column({
-        type: DataType.DATE(),
-        allowNull: false,
-        unique: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        comment: "Last Checked"
-    })
-    checked_at!: string
+    @Column({ nullable: false, unique: false, comment: `Clan Checked At` })
+    checked_at!: Date
+
+    /**
+     * The timestamp when the Clan was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Clan Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Clan was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Clan Updated At` })
+    updated_at!: Date
 
 }

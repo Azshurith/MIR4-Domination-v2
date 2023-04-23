@@ -1,90 +1,73 @@
-import { BelongsTo, Column, DataType, HasMany, HasOne, Model, Table } from 'sequelize-typescript'
-import Mir4Character from './Character.js';
-import Mir4Region from './Region.js';
-import Mir4Clan from './Clan.js';
-import Mir4CharacterServer from './CharacterServer.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4ServerRegion } from "./ServerRegion.js"
+import { Mir4CharacterServer } from "./CharacterServer.js"
+import { Mir4ClanServer } from "./ClanServer.js"
 
 /**
- * A class representing the MIR4 server model.
- * 
+ * A class representing the MIR4 Server model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_servers',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-    deletedAt: `deleted_at`
-})
-export default class Mir4Server extends Model {
+@Entity(`mir4_servers`)
+export class Mir4Server extends BaseEntity {
 
     /**
-     * CharacterServer.
+     * The unique identifier of the Server data
+     * 
+     * @type {number}
      */
-    @HasMany(() => Mir4CharacterServer, {
-        foreignKey: "server_id",
-        as: "characterserver",
-        onUpdate: 'CASCADE',
-    })
-    characterservers!: Awaited<Mir4CharacterServer>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `Server Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Clans.
+     * One-to-Many relationship between Mir4Server and Mir4ServerRegion entities.
+     * 
+     * @type {Mir4ServerRegion[]}
      */
-    @HasMany(() => Mir4Clan, {
-        foreignKey: "server_id",
-        as: "clans",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    clans!: Awaited<Mir4Clan>;
+    @OneToMany((type) => Mir4ServerRegion, (Mir4ServerRegion: Mir4ServerRegion) => Mir4ServerRegion.server)
+    server_regions!: Relation<Mir4ServerRegion[]>
 
     /**
-     * Servers.
+     * One-to-Many relationship between Mir4Server and Mir4CharacterServer entities.
+     * 
+     * @type {Mir4CharacterServer[]}
      */
-    @BelongsTo(() => Mir4Region, {
-        foreignKey: "region_id",
-        as: "server",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    server!: Awaited<Mir4Region>;
+    @OneToMany((type) => Mir4CharacterServer, (Mir4CharacterServer: Mir4CharacterServer) => Mir4CharacterServer.character)
+    character_servers!: Relation<Mir4CharacterServer[]>
 
     /**
-     * Server ID.
+     * One-to-Many relationship between Mir4Server and Mir4ClanServer entities.
+     * 
+     * @type {Mir4ClanServer[]}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Server ID"
-    })
-    server_id!: number
+    @OneToMany((type) => Mir4ClanServer, (Mir4ClanServer: Mir4ClanServer) => Mir4ClanServer.clan)
+    clan_servers!: Relation<Mir4ClanServer[]>
 
     /**
-     * Region ID.
+     * The name of the Server
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: false,
-        allowNull: false,
-        comment: "Region ID"
-    })
-    region_id!: number
-
-    /**
-     * Name.
-     */
-    @Column({
-        type: DataType.STRING(1000),
-        allowNull: false,
-        defaultValue: ``,
-        comment: "Name"
-    })
+    @Column({ nullable: false, unique: true, comment: `Server Name` })
     name!: string
+
+    /**
+     * The timestamp when the Server was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Server Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Server was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Server Updated At` })
+    updated_at!: Date
 
 }

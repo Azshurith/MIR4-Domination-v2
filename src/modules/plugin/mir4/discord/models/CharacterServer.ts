@@ -1,75 +1,90 @@
-import { BelongsTo, Column, DataType, Model, Sequelize, Table } from 'sequelize-typescript'
-import Mir4Character from './Character.js';
-import Mir4Server from './Server.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4Character } from "./Character.js"
+import { Mir4Server } from "./Server.js"
 
 /**
- * A class representing the MIR4 character server model.
- * 
+ * A class representing the MIR4 CharacterServer model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_characters_servers',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4CharacterServer extends Model {
+@Entity(`mir4_characters_servers`)
+export class Mir4CharacterServer extends BaseEntity {
 
     /**
-     * Character.
+     * The unique identifier of the CharacterServer
+     * 
+     * @type {number}
      */
-    @BelongsTo(() => Mir4Character, {
-        foreignKey: "character_id",
-        as: "character",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    character!: Awaited<Mir4Character>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `CharacterServer Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Server.
+     * Many-to-One relationship between Mir4Character and Mir4CharacterServer entities.
+     * 
+     * @type {Mir4Character}
      */
-    @BelongsTo(() => Mir4Server, {
-        foreignKey: "server_id",
-        as: "server",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    server!: Awaited<Mir4Server>;
+    @ManyToOne((type) => Mir4Character, (Mir4Character: Mir4Character) => Mir4Character.character_servers)
+    @JoinColumn({ name: "character_id", referencedColumnName: "id", foreignKeyConstraintName: "characterServer_character" })
+    character!: Relation<Mir4Character>
 
     /**
-     * Character ID.
+     * Many-to-One relationship between Mir4Character and Mir4CharacterServer entities.
+     * 
+     * @type {Mir4Character}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        allowNull: false,
-        comment: "Character ID"
-    })
+    @ManyToOne((type) => Mir4Server, (Mir4Server: Mir4Server) => Mir4Server.character_servers)
+    @JoinColumn({ name: "server_id", referencedColumnName: "id", foreignKeyConstraintName: "characterServer_Server" })
+    Server!: Relation<Mir4Server>
+
+    /**
+     * The character id of the CharacterServer
+     * 
+     * @type {number}
+     */
+    @Column({ nullable: false, unsigned: true, comment: `CharacterServer Character ID`, type: 'bigint' })
     character_id!: number
 
     /**
-     * Server ID.
+     * The Server id of the CharacterServer
+     * 
+     * @type {number}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: false,
-        allowNull: false,
-        comment: "Server ID"
-    })
+    @Column({ nullable: false, unsigned: true, comment: `CharacterServer Server ID`, type: 'bigint' })
     server_id!: number
+    
+    /**
+     * The character id of the CharacterClan
+     * 
+     * @type {boolean}
+     */
+    @Column({ nullable: false, unsigned: true, comment: `CharacterServer Leave Indicator`, type: 'boolean' })
+    is_leave!: boolean
 
     /**
-     * Last Checked
+     * The timestamp when the CharacterServer was last checked
+     * 
+     * @type {Date}
      */
-    @Column({
-        type: DataType.DATE(),
-        allowNull: false,
-        unique: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        comment: "Last Checked"
-    })
-    checked_at!: string
+    @Column({ nullable: false, unique: false, comment: `CharacterServer Checked At` })
+    checked_at!: Date
+
+    /**
+     * The timestamp when the CharacterServer was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `CharacterServer Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the CharacterServer was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `CharacterServer Updated At` })
+    updated_at!: Date
 
 }

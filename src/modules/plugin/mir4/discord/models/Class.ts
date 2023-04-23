@@ -1,54 +1,55 @@
-import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
-import Mir4CharacterClass from './CharacterClass.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Mir4CharacterClass } from "./CharacterClass.js"
 
 /**
- * A class representing the MIR4 class model.
- * 
+ * A class representing the MIR4 Class model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_classes',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4Class extends Model {
+@Entity(`mir4_classes`)
+export class Mir4Class extends BaseEntity {
 
     /**
-     * CharacterClass.
+     * The unique identifier of the Class data
+     * 
+     * @type {number}
      */
-    @HasMany(() => Mir4CharacterClass, {
-        foreignKey: "class_id",
-        as: "characterclass",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    characterclass!: Awaited<Mir4CharacterClass>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `Class Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Class ID.
+     * One-to-Many relationship between Mir4Character and Mir4CharacterClass entities.
+     * 
+     * @type {Mir4CharacterClass[]}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Class ID"
-    })
-    class_id!: number
+    @OneToMany((type) => Mir4CharacterClass, (Mir4CharacterClass: Mir4CharacterClass) => Mir4CharacterClass.class)
+    character_classes!: Mir4CharacterClass[]
 
     /**
-     * Name.
+     * The name of the Class
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.STRING(32),
-        allowNull: false,
-        defaultValue: ``,
-        comment: "Name"
-    })
+    @Column({ nullable: false, unique: false, comment: `Class Name` })
     name!: string
+
+    /**
+     * The timestamp when the Class was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Class Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Class was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Class Updated At` })
+    updated_at!: Date
 
 }

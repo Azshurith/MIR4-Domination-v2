@@ -1,20 +1,23 @@
 import { Client } from "discord.js";
 import { APIController } from "../../../../core/interface/controllers/APIController";
-import { IContinent, IData, IServer, LeaderBoardRequest } from "../interface/ILeaderBoard";
-import { Sequelize } from "sequelize-typescript";
+import { IContinent, IServer, LeaderBoardRequest } from "../interface/ILeaderBoard";
+import { InsertResult, Not } from "typeorm";
+import { Mir4Character } from "../models/Character.js";
+import { Mir4CharacterClan } from "../models/CharacterClan.js";
+import { Mir4CharacterClass } from "../models/CharacterClass.js";
+import { Mir4CharacterServer } from "../models/CharacterServer.js";
+import { Mir4Class } from "../models/Class.js";
+import { Mir4Clan } from "../models/Clan.js";
+import { Mir4ClanServer } from "../models/ClanServer.js";
+import { Mir4Region } from "../models/Region.js";
+import { Mir4Server } from "../models/Server.js";
+import { Mir4ServerRegion } from "../models/ServerRegion.js";
 import axios, { AxiosResponse } from "axios";
 import * as cheerio from "cheerio";
 import pLimit from 'p-limit';
 import queryString from "query-string";
-import Mir4Region from "../models/Region.js";
-import Mir4Server from "../models/Server.js";
-import Mir4Class from "../models/Class.js";
-import Mir4Clan from "../models/Clan.js";
-import Mir4Character from "../models/Character.js";
-import Mir4CharacterClan from "../models/CharacterClan.js";
-import Mir4CharacterClass from "../models/CharacterClass.js";
-import Mir4CharacterServer from "../models/CharacterServer.js";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
+
 
 /**
  * Controller class for retrieving power score ranking information for MIR4 NFTs.
@@ -30,11 +33,6 @@ export default class RetrievePowerScoreRanking implements APIController {
      * @var {Client} client - The client object used to interact with the API.
      */
     private readonly _client: Client
-
-    private _cache: IData = {
-        clans: [],
-        characters: []
-    }
 
     /**
      * Create a new instance of the class.
@@ -52,7 +50,7 @@ export default class RetrievePowerScoreRanking implements APIController {
      * @returns {Promise<void>} - A promise that resolves when the data has been fetched.
      */
     async fetch(request: LeaderBoardRequest): Promise<void> {
-        const continents: IContinent[] = await this.fetchContinents(`${process.env.MIR4_FORUM_LEADERBOARD_URL}?${queryString.stringify(request)}`)
+        const continents: IContinent[] = await this.fetchContinents(`${request.url}?${queryString.stringify(request.params)}`)
         await this.fetchClasses()
         await this.fetchServers(request, continents);
     }
@@ -84,13 +82,10 @@ export default class RetrievePowerScoreRanking implements APIController {
         }]
 
         for (const clazz of classes) {
-            const existingClazz = await Mir4Class.findByPk(clazz.id);
-            if (existingClazz) {
-                existingClazz.name = clazz.name;
-                await existingClazz.save();
-            } else {
-                await Mir4Class.create(clazz);
-            }
+            const config: InsertResult = await Mir4Class.upsert(
+                [{ id: clazz.id, name: clazz.name }],
+                ['name']
+            )
         }
     }
 
@@ -120,7 +115,7 @@ export default class RetrievePowerScoreRanking implements APIController {
      * 
      * @param {LeaderBoardRequest} request - The request object containing the required parameters for fetching the leaderboard data.
      * @param {IContinent} continent - The continent on which the server is located.
-     * @param {IContinent} continent - The continent on which the server is located.
+     * @param {IServer} server - The server to be fetched
      * @returns {Promise<void>} A promise that resolves when the leaderboard data has been fetched and updated in the database.
      */
     async fetchServer(request: LeaderBoardRequest, continent: IContinent, server: IServer): Promise<void> {
@@ -131,12 +126,15 @@ export default class RetrievePowerScoreRanking implements APIController {
         while (!done) {
             CLogger.info(`Fetching Server ${continent.name} - ${server.name} on Page: ${page}`);
             const fetchPromise = limit(() => this.fetchPlayers({
-                ranktype: request.ranktype,
-                worldgroupid: continent.region,
-                worldid: server.id,
-                liststyle: "ol",
-                page: page
-            }));
+                url: request.url,
+                params: {
+                    ranktype: request.params.ranktype,
+                    worldgroupid: continent.region,
+                    worldid: server.id,
+                    liststyle: "ol",
+                    page: page
+                }
+            }, server));
             const newData = await fetchPromise;
             if (!newData) {
                 CLogger.info(`Finished Fetching Server: ${continent.name} - ${server.name}`);
@@ -150,10 +148,11 @@ export default class RetrievePowerScoreRanking implements APIController {
      * Fetches the servers data for each continent, and fetches players' data for each server.
      * 
      * @param request The leaderboard request object containing data about the leaderboard.
+     * @param {IServer} server - The server to be fetched
      * @returns A boolean value indicating if the fetch operation was successful or not.
      */
-    async fetchPlayers(request: LeaderBoardRequest): Promise<boolean> {
-        const url: string = `${process.env.MIR4_FORUM_LEADERBOARD_URL}?${queryString.stringify(request)}`;
+    async fetchPlayers(request: LeaderBoardRequest, server: IServer): Promise<boolean> {
+        const url: string = `${request.url}?${queryString.stringify(request.params)}`;
         const response: AxiosResponse<any> = await axios.get<any>(url);
         const $: cheerio.CheerioAPI = cheerio.load(response.data, { xmlMode: true });
 
@@ -168,101 +167,56 @@ export default class RetrievePowerScoreRanking implements APIController {
                 const clanName = $(element).find('td:nth-of-type(3) span').text().trim();
                 const powerScore = parseFloat($(element).find('.text_right span').text().trim().replaceAll(',', ''));
                 const clazz = Number($(element).find('.user_icon').attr('style')!.match(/background-image: url\((.*?)\);/)![1]!.match(/char_(\d+)\.png/)![1]);
-                
-                const isPlayerProcessed = this._cache.characters.some(character => character.name === userName);
-                if (isPlayerProcessed) {
+
+                let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
+                if (!world) {
+                    CLogger.error(`Unable to find Server [${request.params.worldid}], skipping User [${userName}].`);
                     continue;
                 }
 
-                this._cache.characters.push({
-                    name: userName,
-                    powerscore: powerScore
-                })
-
-                const updateOrCreate = async ([clanResult, characterResult, characterClanResult, characterClassResult, characterServerResult]: [[Mir4Clan, boolean], [Mir4Character, boolean], [Mir4CharacterClan, boolean], [Mir4CharacterClass, boolean], [Mir4CharacterServer, boolean]]): Promise<void> => {
-                    return new Promise(async (resolve, reject) => {
-                        const [clan, createdClan] = clanResult;
-                        const [character, createdCharacter] = characterResult;
-                        const [characterClan, createdCharacterClan] = characterClanResult;
-                        const [characterClass, createdCharacterClass] = characterClassResult;
-                        const [characterServer, createdCharacterServer] = characterServerResult;
-
-                        if (!createdClan) {
-                            await clan.update({
-                                server_id: request.worldid,
-                                checked_at: Sequelize.literal("CURRENT_TIMESTAMP")
-                            })
-                        }
-
-                        if (!createdCharacter) {
-                            await character.update({
-                                powerscore: powerScore,
-                                checked_at: Sequelize.literal("CURRENT_TIMESTAMP")
-                            })
-                        }
-
-                        if (!createdCharacterClan) {
-                            await characterClan.update({
-                                checked_at: Sequelize.literal("CURRENT_TIMESTAMP")
-                            })
-                        }
-
-                        if (!createdCharacterClass) {
-                            await characterClass.update({
-                                checked_at: Sequelize.literal("CURRENT_TIMESTAMP")
-                            })
-                        }
-
-                        if (!createdCharacterServer) {
-                            await characterServer.update({
-                                checked_at: Sequelize.literal("CURRENT_TIMESTAMP")
-                            })
-                        }
-
-                        resolve();
-                    });
+                let character: Mir4Character | null = await Mir4Character.findOne({ where: { username: userName } });
+                if (!character) {
+                    character = await Mir4Character.create({ username: userName, powerscore: powerScore, checked_at: new Date() }).save();
+                } else {
+                    await Mir4Character.update({ id: character.id }, { powerscore: powerScore, checked_at: new Date() });
                 }
 
-                const [clan, createdClan] = await Mir4Clan.findCreateFind({
-                    where: {
-                        name: clanName
-                    },
-                    defaults: { server_id: request.worldid, checked_at: Sequelize.literal("CURRENT_TIMESTAMP") },
-                });
+                let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: clanName } });
+                if (!clan) {
+                    clan = await Mir4Clan.create({ name: clanName, checked_at: new Date() }).save();
+                } else {
+                    await Mir4Clan.update({ id: clan.id }, { name: clanName, checked_at: new Date() });
+                }
 
-                const [character, createdCharacter] = await Mir4Character.findCreateFind({
-                    where: {
-                        username: userName
-                    },
-                    defaults: { powerscore: powerScore, checked_at: Sequelize.literal("CURRENT_TIMESTAMP") },
-                });
+                let characterClan: Mir4CharacterClan | null = await Mir4CharacterClan.findOne({ where: { character_id: character.id, clan_id: clan.id, is_leave: false } });
+                if (!characterClan) {
+                    characterClan = await Mir4CharacterClan.create({ character_id: character.id, clan_id: clan.id, is_leave: false, checked_at: new Date() }).save();
+                } else {
+                    await Mir4CharacterClan.update({ id: characterClan.id, is_leave: false }, { checked_at: new Date() });
+                    await Mir4CharacterClan.update({ id: Not(characterClan.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
+                }
 
-                const [characterClan, createdCharacterClan] = await Mir4CharacterClan.findCreateFind({
-                    where: {
-                        character_id: createdCharacter ? character.character_id : character.dataValues.character_id,
-                        clan_id: createdClan ? clan.clan_id : clan.dataValues.clan_id
-                    },
-                    defaults: { checked_at: Sequelize.literal("CURRENT_TIMESTAMP") },
-                });
+                let clanServer: Mir4ClanServer | null = await Mir4ClanServer.findOne({ where: { clan_id: clan.id, server_id: world.id , is_disband: false } });
+                if (!clanServer) {
+                    clanServer = await Mir4ClanServer.create({ clan_id: clan.id, server_id: world.id, is_disband: false, checked_at: new Date() }).save();
+                } else {
+                    await Mir4ClanServer.update({ id: clanServer.id, is_disband: false }, { checked_at: new Date() });
+                }
 
-                const [characterClass, createdCharacterClass] = await Mir4CharacterClass.findCreateFind({
-                    where: {
-                        character_id: createdCharacter ? character.character_id : character.dataValues.character_id,
-                        class_id: clazz
-                    },
-                    defaults: { checked_at: Sequelize.literal("CURRENT_TIMESTAMP") },
-                });
+                let characterClass: Mir4CharacterClass | null = await Mir4CharacterClass.findOne({ where: { character_id: character.id, class_id: clazz } });
+                if (!characterClass) {
+                    characterClass = await Mir4CharacterClass.create({ character_id: character.id, class_id: clazz, checked_at: new Date() }).save();
+                }
 
-                const [characterServer, createdCharacterServer] = await Mir4CharacterServer.findCreateFind({
-                    where: {
-                        character_id: createdCharacter ? character.character_id : character.dataValues.character_id,
-                        server_id: request.worldid
-                    },
-                    defaults: { checked_at: Sequelize.literal("CURRENT_TIMESTAMP") },
-                });
-
-                await updateOrCreate([[clan, createdClan], [character, createdCharacter], [characterClan, createdCharacterClan], [characterClass, createdCharacterClass], [characterServer, createdCharacterServer]]);
+                let characterServer: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { character_id: character.id, server_id: world.id, is_leave: false } });
+                if (!characterServer) {
+                    characterServer = await Mir4CharacterServer.create({ character_id: character.id, server_id: world.id, is_leave: false, checked_at: new Date() }).save();
+                } else {
+                    await Mir4CharacterServer.update({ id: characterServer.id, is_leave: false }, { checked_at: new Date() });
+                    await Mir4CharacterServer.update({ id: Not(characterServer.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
+                }
             } catch (error) {
+                console.log(error);
                 CLogger.error(`Failed to process ${url} : ${error}`);
             }
         }
@@ -309,21 +263,32 @@ export default class RetrievePowerScoreRanking implements APIController {
             }
         });
 
+        let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: "--" } });
+        if (!clan) {
+            clan = await Mir4Clan.create({ name: "--", checked_at: new Date() }).save();
+        }
         for (const continent of continents) {
-            const [region, created]: [Mir4Region, boolean] = await Mir4Region.findOrCreate({
-                where: { region_id: continent.region },
-                defaults: { name: continent.name },
-            });
+            let region: Mir4Region | null = await Mir4Region.findOne({ where: { name: continent.name } });
 
-            const servers: any[] = continent.servers.map((s: IServer) => ({
-                server_id: s.id,
-                name: s.name,
-                region_id: created ? region.region_id : region.dataValues.region_id,
-            }));
+            if (!region) {
+                region = await Mir4Region.create({ name: continent.name }).save();
+            }
 
-            await Mir4Server.bulkCreate(servers, {
-                updateOnDuplicate: ['name'],
-            });
+            for (const server of continent.servers) {
+                let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
+
+                if (!world) {
+                    world = await Mir4Server.create({ name: server.name }).save();
+                }
+
+                const worldregion: Mir4ServerRegion | null = await Mir4ServerRegion.findOne({
+                    where: { server_id: world.id, region_id: region.id },
+                });
+
+                if (!worldregion) {
+                    await Mir4ServerRegion.create({ server_id: world.id, region_id: region.id }).save();
+                }
+            }
         }
 
         return continents;

@@ -1,4 +1,5 @@
-import DiscordConfig from "../models/Config.js";
+import { InsertResult } from "typeorm";
+import { DiscordConfig } from "../models/Config.js";
 
 /**
  * A class representing the config helper
@@ -19,11 +20,18 @@ export default class HDiscordConfig {
      */
     static async loadConfig(path: string): Promise<string> {
         const value: string = this.loadEnv(path)
-        const [config, createdConfig] = await DiscordConfig.findCreateFind({
-            where: { path: path },
-            defaults: { value: value}
-        })
-        return createdConfig ? config.value : config.dataValues.value
+        await DiscordConfig.upsert(
+            [
+                { path: path, value: value }
+            ],
+            ['path']
+        )
+
+        const config = await DiscordConfig.findOneOrFail({
+            where: { path: path }
+        });
+        
+        return config.value
     }
 
     /**

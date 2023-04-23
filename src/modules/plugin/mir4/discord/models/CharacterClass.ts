@@ -1,75 +1,82 @@
-import { BelongsTo, Column, DataType, Model, Sequelize, Table } from 'sequelize-typescript'
-import Mir4Character from './Character.js';
-import Mir4Class from './Class.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4Character } from "./Character.js"
+import { Mir4Class } from "./Class.js"
 
 /**
- * A class representing the MIR4 character class model.
- * 
+ * A class representing the MIR4 CharacterClass model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_characters_classes',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-})
-export default class Mir4CharacterClass extends Model {
+@Entity(`mir4_characters_classes`)
+export class Mir4CharacterClass extends BaseEntity {
 
     /**
-     * Character.
+     * The unique identifier of the CharacterClass
+     * 
+     * @type {number}
      */
-    @BelongsTo(() => Mir4Character, {
-        foreignKey: "character_id",
-        as: "character",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    character!: Awaited<Mir4Character>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `CharacterClass Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Class.
-     */
-    @BelongsTo(() => Mir4Class, {
-        foreignKey: "class_id",
-        as: "class",
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    })
-    class!: Awaited<Mir4Class>;
+     * Many-to-One relationship between Mir4Character and Mir4CharacterClass entities.
+     * 
+     * @type {Mir4Character}
+    */
+    @ManyToOne((type) => Mir4Character, (Mir4Character: Mir4Character) => Mir4Character.character_classes)
+    @JoinColumn({ name: "character_id", referencedColumnName: "id", foreignKeyConstraintName: "characterclass_character" })
+    character!: Relation<Mir4Character>
 
     /**
-     * Character ID.
+     * Many-to-One relationship between Mir4Character and Mir4CharacterClass entities.
+     * 
+     * @type {Mir4Character}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        allowNull: false,
-        comment: "Character ID"
-    })
+    @ManyToOne((type) => Mir4Class, (Mir4Class: Mir4Class) => Mir4Class.character_classes)
+    @JoinColumn({ name: "class_id", referencedColumnName: "id", foreignKeyConstraintName: "characterclass_class" })
+    class!: Relation<Mir4Class>
+
+    /**
+     * The character id of the CharacterClass
+     * 
+     * @type {number}
+     */
+    @Column({ nullable: false, unsigned: true, comment: `CharacterClass Character ID`, type: 'bigint' })
     character_id!: number
 
     /**
-     * Class ID.
+     * The Class id of the CharacterClass
+     * 
+     * @type {number}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: false,
-        allowNull: false,
-        comment: "Class ID"
-    })
+    @Column({ nullable: false, unsigned: true, comment: `CharacterClass Class ID`, type: 'bigint' })
     class_id!: number
 
     /**
-     * Last Checked
+     * The timestamp when the CharacterClass was last checked
+     * 
+     * @type {Date}
      */
-    @Column({
-        type: DataType.DATE(),
-        allowNull: false,
-        unique: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        comment: "Last Checked"
-    })
-    checked_at!: string
+    @Column({ nullable: false, unique: false, comment: `CharacterClass Checked At` })
+    checked_at!: Date
+
+    /**
+     * The timestamp when the CharacterClass was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `CharacterClass Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the CharacterClass was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `CharacterClass Updated At` })
+    updated_at!: Date
 
 }

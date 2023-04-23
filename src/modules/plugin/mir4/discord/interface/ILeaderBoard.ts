@@ -1,7 +1,18 @@
 import { DefaultRequest } from "../../../../core/interface/requests/IDefaultRequest"
 
+
 /**
  * Represents a request for the leader board.
+ * @version 1.0.0
+ * @since 04/21/23
+ * @property {LeaderBoardParams} params - The parameters of the request
+ */
+export interface LeaderBoardRequest extends DefaultRequest {
+    params: LeaderBoardParams
+}
+
+/**
+ * Represents the params for the leader board.
  * @version 1.0.0
  * @since 04/21/23
  * @property {number} ranktype - The type of the rank.
@@ -12,14 +23,14 @@ import { DefaultRequest } from "../../../../core/interface/requests/IDefaultRequ
  * @property {string} [liststyle] - The style of the list.
  * @property {number} [page] - The page number.
  */
-export interface LeaderBoardRequest extends DefaultRequest {
+export interface LeaderBoardParams {
     ranktype: number;
     worldgroupid: number;
     worldid: number;
     classtype?: string;
     searchname?: string;
     liststyle?: string;
-    page?: number;
+    page?: number
 }
 
 /**

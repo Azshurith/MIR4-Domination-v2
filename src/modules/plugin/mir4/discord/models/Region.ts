@@ -1,55 +1,55 @@
-import {Column, DataType, HasMany, Model, Table} from 'sequelize-typescript'
-import Mir4Server from './Server.js';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
+import { Mir4ServerRegion } from "./ServerRegion.js"
 
 /**
- * A class representing the MIR4 region model.
- * 
+ * A class representing the MIR4 Region model
+ *
  * @version 1.0.0
- * @since 04/22/23
+ * @since 04/23/23
  * @author
  *  - Devitrax
  */
-@Table({
-    tableName: 'mir4_regions',
-    createdAt: `created_at`,
-    updatedAt: `updated_at`,
-    deletedAt: `deleted_at`
-})
-export default class Mir4Region extends Model {
+@Entity(`mir4_regions`)
+export class Mir4Region extends BaseEntity {
 
     /**
-     * Servers.
+     * The unique identifier of the Region data
+     * 
+     * @type {number}
      */
-    @HasMany(() => Mir4Server, {
-        foreignKey: "region_id",
-        as: "servers",
-        onUpdate: 'CASCADE',
-    })
-    servers!: Awaited<Mir4Server>;
+    @PrimaryGeneratedColumn({ unsigned: true, comment: `Region Identity`, type: 'bigint' })
+    id!: number
 
     /**
-     * Region ID.
+     * One-to-Many relationship between Mir4Server and Mir4ServerRegion entities.
+     * 
+     * @type {Mir4ServerRegion[]}
      */
-    @Column({
-        type: DataType.BIGINT(),
-        unique: true,
-        primaryKey: true,
-        allowNull: false,
-        autoIncrement: true,
-        comment: "Region ID"
-    })
-    region_id!: number
+    @OneToMany((type) => Mir4ServerRegion, (Mir4ServerRegion: Mir4ServerRegion) => Mir4ServerRegion.region)
+    server_regions!: Relation<Mir4ServerRegion[]>
 
     /**
-     * Name.
+     * The name of the Region
+     * 
+     * @type {string}
      */
-    @Column({
-        type: DataType.STRING(32),
-        allowNull: false,
-        unique: true,
-        defaultValue: ``,
-        comment: "Name"
-    })
+    @Column({ nullable: false, unique: true, comment: `Region Name` })
     name!: string
+
+    /**
+     * The timestamp when the Region was created
+     * 
+     * @type {Date}
+     */
+    @CreateDateColumn({ comment: `Region Created At` })
+    created_at!: Date
+
+    /**
+     * The timestamp when the Region was last updated
+     * 
+     * @type {Date}
+     */
+    @UpdateDateColumn({ comment: `Region Updated At` })
+    updated_at!: Date
 
 }
