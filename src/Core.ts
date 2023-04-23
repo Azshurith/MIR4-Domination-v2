@@ -6,6 +6,7 @@ import Database from "./modules/core/database/Database.js"
 import CLogger from "./modules/core/interface/utilities/logger/controllers/CLogger.js";
 import "dotenv/config";
 import "reflect-metadata"
+import HDiscordConfig from "./modules/core/helpers/HDiscordConfig.js";
 
 class Core {
 
@@ -17,15 +18,10 @@ class Core {
             .then(async () => {
                 CLogger.info(`Databased Initialized`)
 
-                await importx(process.cwd() + "/src/modules/**/{events,commands}/**/*.{ts,js}");
-                
-                if (!process.env.BOT_DOMINATION) {
-                    throw Error("Could not find BOT_DOMINATION in your environment");
-                }
-
-                // Log in with your bot token
                 const bot: Client = this.createBot()
-                await bot.login(process.env.BOT_DOMINATION);
+                
+                await importx(process.cwd() + "/src/modules/**/{events,commands}/**/*.{ts,js}");
+                await bot.login(HDiscordConfig.loadEnv(`discord.bot.token`));
 
                 CLogger.info(`Application has started`)
             })

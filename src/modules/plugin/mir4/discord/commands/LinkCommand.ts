@@ -1,16 +1,14 @@
-import { Colors, TextChannel } from "discord.js";
-import { ActionRowBuilder, ApplicationCommandOptionType, ChannelType, CommandInteraction, EmbedBuilder, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js"
-import { Discord, Guard, ModalComponent, Slash, SlashGroup, SlashOption } from "discordx"
+import { ActionRowBuilder, CommandInteraction, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js"
+import { Discord, Guard, ModalComponent, Slash, SlashGroup } from "discordx"
 import { NotLinked } from "../guards/NotLinked.js";
-// import Mir4Character from "../models/Character.js";
-// import Mir4Server from "../models/Server.js";
-// import Mir4CharacterServer from "../models/CharacterServer.js";
+import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
+import AccountLinkController from "../controllers/AccountLinkController.js";
 
 /**
- * A class that provides the functionality to retrieve and send a Discord embed message.
+ * Provides the functionality to link a MIR4 account to a Discord account using a Discord Slash command.
  *
  * @author  Devitrax
- * @version 1.0, 11/17/22
+ * @version 1.0, 11/23/22
  */
 @Discord()
 @Guard(NotLinked)
@@ -19,11 +17,11 @@ import { NotLinked } from "../guards/NotLinked.js";
 export abstract class RegisterCommand {
 
     /**
-     * Slash command to create a Discord embed.
-     *
-     * @param {string} channel - Channel ID to send the embed to.
-     * @param {CommandInteraction} interaction - The interaction context.
-     * @returns {Promise<void>
+     * Executes the link command to link a MIR4 account to a Discord account.
+     * 
+     * @param {CommandInteraction} interaction - The interaction object representing the command invocation.
+     * @returns {Promise<void>}
+     * @throws {Error} - If an error occurs while executing the command.
      */
     @Slash({ name: "link", description: "Link your MIR4 account to your discord" })
     async execute(
@@ -59,47 +57,31 @@ export abstract class RegisterCommand {
         interaction.showModal(modal);
     }
 
+    /**
+     * LinkAccount is a modal component that links a Mir4 character to a Discord account.
+     * 
+     * @param {ModalSubmitInteraction} interaction - The interaction object received from Discord.
+     * @returns {Promise<void>} - Promise that resolves to void when the function completes.
+     * @throws {Error} - Throws an error if an exception occurs during execution.
+     */
     @ModalComponent()
     async LinkAccount(interaction: ModalSubmitInteraction): Promise<void> {
-        const [characterName, serverName] = ["characterName", "serverName"].map((id) =>
-            interaction.fields.getTextInputValue(id)
-        );
+        try {
+            const [characterName, serverName] = ["characterName", "serverName"].map((id) =>
+                interaction.fields.getTextInputValue(id)
+            );
 
-    //     const embed: EmbedBuilder = new EmbedBuilder()
-    //         .setTitle("Character Link")
-    //         .setColor(Colors.Red)
-    //         .setFooter({
-    //             text: `${new Date()}`,
-    //             iconURL: "https://coinalpha.app/images/coin/1_20211022025215.png",
-    //         });
-
-    //     const character = await Mir4Character.findOne({ where: { username: characterName } });
-    //     if (!character) {
-    //         embed.setDescription(`The character \`${characterName}\` is not found.`)
-    //         await interaction.reply({ embeds: [embed], ephemeral: true });
-    //         return;
-    //     }
-
-    //     const server = await Mir4Server.findOne({ where: { name: serverName } });
-    //     if (!server) {
-    //         embed.setDescription(`The server \`${serverName}\` is not found.`)
-    //         await interaction.reply({ embeds: [embed], ephemeral: true });
-    //         return;
-    //     }
-
-    //     const characterServer = await Mir4CharacterServer.findOne({ where: { server_id: server.dataValues.server_id, character_id: character.dataValues.character_id } });
-    //     if (!characterServer) {
-    //         embed.setDescription(`Character \`${characterName}\` is not found in Server \`${serverName}\`.`)
-    //         await interaction.reply({ embeds: [embed], ephemeral: true });
-    //         return;
-    //     }
-
-    //     embed.setColor(Colors.Gold)
-    //         .setDescription(`Successfully linked the character \`${characterName}\` to your discord account.`)
-
-    //     await interaction.reply({ embeds: [embed], ephemeral: true });
-    //     return;
+            await new AccountLinkController(interaction.client).fetch({
+                params: {
+                    characterName: characterName,
+                    serverName: serverName,
+                    interaction: interaction
+                }
+            })
+        } catch (error) {
+            CLogger.error(`An exception has occured in Link Command: ${error}`)
+        }
+        return;
     }
-
 
 }

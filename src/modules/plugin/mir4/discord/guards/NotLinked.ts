@@ -1,51 +1,45 @@
-import { GuardFunction, ArgsOf, Next } from "discordx";
-import { Client, CommandInteraction, GuildMemberRoleManager, Role } from "discord.js";
-import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
-import HTextChat from "../../../../core/helpers/HTextChat.js";
+import { Next } from "discordx";
+import { Client, Colors, CommandInteraction, EmbedBuilder } from "discord.js";
 
 /**
- * Middleware that checks if the interaction member has the moderator role.
+ * This function is used as a middleware to check if the user's Discord account is already linked to a character.
+ * If the user's account is already linked, it returns an error message and stops the execution.
+ * Otherwise, it proceeds to the next function.
  * 
  * @author  Devitrax
  * @version 1.0, 11/17/22
  * 
- * @param {CommandInteraction} interaction - The interaction being executed.
- * @param {Client} client - The Discord.js client instance.
- * @param {Next} next - The function to call if the interaction member has the moderator role.
- * @returns {Promise<void>}
+ * @param {CommandInteraction} interaction - The interaction object for the command.
+ * @param {Client} client - The Discord client object.
+ * @param {Next} next - The function to proceed to if the user's account is not already linked.
+ * @returns {Promise<void>} - A promise that resolves with nothing.
  */
 export async function NotLinked(interaction: CommandInteraction, client: Client, next: Next): Promise<void> {
-    // if (!process.env.SERVER_MODERATOR_ROLE_ID) {
-    //     CLogger.error(`[${import.meta.url}] The SERVER_MODERATOR_ROLE_ID environment variable is not set.`);
-    //     return;
-    // }
+    const embed: EmbedBuilder = new EmbedBuilder()
+        .setTitle("Character Link")
+        .setColor(Colors.Red)
+        .setFooter({
+            text: `${new Date()}`,
+            iconURL: 'attachment://embed-footer.png',
+        });
 
-    // if (!client.user) {
-    //     CLogger.error(`[${import.meta.url}] User not found.`);
-    //     return;
-    // }
+    if (!client.user) {
+        embed.setDescription(`User not found.`)
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
+    }
 
-    // if (!interaction.guild) {
-    //     CLogger.error(`[${import.meta.url}] Guild not found.`);
-    //     return;
-    // }
+    if (!interaction.guild) {
+        embed.setDescription(`Guild not found.`)
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
+    }
 
-    // if (!interaction.member) {
-    //     CLogger.error(`[${import.meta.url}] Member not found.`);
-    //     return;
-    // }
+    if (!interaction.member) {
+        embed.setDescription(`Member not found.`)
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
+    }
 
-    // const role: Role | undefined = interaction.guild.roles.cache.find(role => role.id === process.env.SERVER_MODERATOR_ROLE_ID);
-
-    // if (!role) {
-    //     CLogger.error(`[${import.meta.url}] Role not found.`);
-    //     return;
-    // }
-
-    // const roles: GuildMemberRoleManager | string[] = interaction.member.roles as GuildMemberRoleManager
-    // if (roles.cache.has(role.id)) {
-    //     await next();
-    // } else {
-    //     interaction.reply(`Only ${HTextChat.tagRole(role.id)} is allowed to execute this command.`)
-    // }
+    await next();
 }

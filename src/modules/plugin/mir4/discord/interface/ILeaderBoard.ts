@@ -1,6 +1,5 @@
 import { DefaultRequest } from "../../../../core/interface/requests/IDefaultRequest"
 
-
 /**
  * Represents a request for the leader board.
  * @version 1.0.0
@@ -57,37 +56,4 @@ export interface IContinent {
 export interface IServer {
     id: number
     name: string
-}
-
-/**
- * Represents a player in the MIR4 game.
- * @version 1.0.0
- * @since 04/22/23
- * @property {number} server_id - The ID of the server the player is on.
- * @property {number} class_id - The ID of the player's class.
- * @property {number} clan_id - The ID of the player's clan.
- * @property {string} username - The name of the player.
- * @property {number} powerscore - The power score of the player.
- */
-export interface IPlayer {
-    server_id: number,
-    class_id: number,
-    clan_id: number,
-    username: string,
-    powerscore: number,
-}
-
-export interface IData {
-    clans: IClan[]
-    characters: ICharacter[]
-}
-
-export interface IClan {
-    server_id: number
-    name: string
-}
-
-export interface ICharacter {
-    name: string
-    powerscore: number
 }

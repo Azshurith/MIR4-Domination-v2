@@ -2,6 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGenerat
 import { Mir4CharacterClan } from "./CharacterClan.js"
 import { Mir4CharacterClass } from "./CharacterClass.js"
 import { Mir4CharacterServer } from "./CharacterServer.js"
+import { Mir4CharacterDiscord } from "./CharacterDiscord.js"
 
 /**
  * A class representing the MIR4 Character model
@@ -46,6 +47,14 @@ export class Mir4Character extends BaseEntity {
     @OneToMany((type) => Mir4CharacterServer, (Mir4CharacterServer: Mir4CharacterServer) => Mir4CharacterServer.character)
     character_servers!: Relation<Mir4CharacterServer[]>
 
+    /**
+     * One-to-Many relationship between Mir4Character and Mir4CharacterDiscord entities.
+     * 
+     * @type {Mir4CharacterDiscord[]}
+     */
+    @OneToMany((type) => Mir4CharacterDiscord, (Mir4CharacterDiscord: Mir4CharacterDiscord) => Mir4CharacterDiscord.character)
+    character_discords!: Relation<Mir4CharacterDiscord[]>
+    
     /**
      * The username of the Character
      * 

@@ -18,7 +18,6 @@ import pLimit from 'p-limit';
 import queryString from "query-string";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
 
-
 /**
  * Controller class for retrieving power score ranking information for MIR4 NFTs.
  *
