@@ -7,6 +7,7 @@ import { Mir4CharacterServer } from "../models/CharacterServer.js";
 import { Mir4Server } from "../models/Server.js";
 import { AccountLinkRequest } from "../interface/IAccountLink.js";
 import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
+import HServerUtil from "../../../../core/helpers/HServerUtil.js";
 
 /**
  * Controller class for linking MIR4 account to discord.
@@ -89,9 +90,16 @@ export default class AccountLinkController implements APIController {
             discordUser = await DiscordUser.create({ username: interaction.member.user.username, discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator }).save();
         }
 
-        let characterDiscord: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { character_id: character.id, discord_id: discordUser.id, is_unlink: false } });
-        if (characterDiscord) {
+        let characterDiscord1: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { discord_id: discordUser.id, is_unlink: false } });
+        if (characterDiscord1) {
             embed.setDescription(`Your discord is already linked.`)
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
+        let characterDiscord2: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { character_id: character.id, is_unlink: false } });
+        if (characterDiscord2) {
+            embed.setDescription(`The character \`${characterName}\` is already linked to someone else.`)
             await interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
@@ -126,6 +134,9 @@ export default class AccountLinkController implements APIController {
                 new AttachmentBuilder(`${process.cwd()}/src/modules/core/resources/images/DominationFooter.png`, { name: 'embed-footer.png' })
             ]
         });
+        
+        embed.setDescription(`${HDiscordBot.tagUser(member.user.id)} has successfully linked the character \`${characterName}\` to their discord account.`)
+        await HServerUtil.logVerification(this._client, embed)
     }
 
 }

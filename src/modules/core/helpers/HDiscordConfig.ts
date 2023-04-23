@@ -1,4 +1,3 @@
-import { InsertResult } from "typeorm";
 import { DiscordConfig } from "../models/Config.js";
 
 /**
@@ -18,8 +17,33 @@ export default class HDiscordConfig {
      * @returns {Promise<string>} - Returns the config value or null if config does not exist
      * @throws {Error} - Throws an error if there was a problem loading the config
      */
-    static async loadConfig(path: string): Promise<string> {
+    static async loadDbConfig(path: string, value: string = ""): Promise<string> {
+        if (value) {
+            await DiscordConfig.upsert(
+                [
+                    { path: path, value: value }
+                ],
+                ['path']
+            )
+        }
+
+        const config: DiscordConfig | null = await DiscordConfig.findOne({
+            where: { path: path }
+        });
+
+        return config ? config.value : ""
+    }
+
+    /**
+     * Loads config from database
+     * 
+     * @param {string} path - The path to the config
+     * @returns {Promise<string>} - Returns the config value or null if config does not exist
+     * @throws {Error} - Throws an error if there was a problem loading the config
+     */
+    static async loadEnvConfig(path: string): Promise<string> {
         const value: string = this.loadEnv(path)
+
         await DiscordConfig.upsert(
             [
                 { path: path, value: value }
@@ -30,7 +54,7 @@ export default class HDiscordConfig {
         const config = await DiscordConfig.findOneOrFail({
             where: { path: path }
         });
-        
+
         return config.value
     }
 

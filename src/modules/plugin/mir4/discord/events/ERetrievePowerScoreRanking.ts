@@ -14,7 +14,7 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
         // Cron.schedule("* * * * *", async () => {
         //     try {
         //         CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
-        //         const url: string = await HDiscordConfig.loadConfig(`mir4.forum.leaderboard.url`)
+        //         const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
         //         await new RetrievePowerScoreRanking(client).fetch({
         //             url: url,
         //             params: {

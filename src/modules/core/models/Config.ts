@@ -9,7 +9,7 @@ import { IConfig } from "../interface/models/IConfig";
  * @author
  *  - Devitrax
  */
-@Entity(`discord_config`)
+@Entity(`discord_config`, { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class DiscordConfig extends BaseEntity {
 
     /**
