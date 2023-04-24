@@ -201,6 +201,24 @@ export default class HDiscordBot {
     }
 
     /**
+     * Finds a role in a guild by name.
+     * 
+     * @param {Guild} guild - The guild to search for the role in.
+     * @param {string} name - The name of the role to search for.
+     * @returns {Promise<Role | null>} - A promise that resolves to the found role, or null if the role was not found.
+     */
+    static async findRole(guild: Guild, name: string): Promise<Role | null> {
+        const role: Role | undefined = guild.roles.cache.find(role => role.name.toLowerCase() === name.toLowerCase());
+
+        if (role == null) {
+            CLogger.error(`Request Error > Role not found: (${name})`);
+            return null;
+        }
+
+        return role
+    }
+
+    /**
      * Converts BBCode to Discord-compatible text.
      * 
      * @param {string} text The text to convert.
