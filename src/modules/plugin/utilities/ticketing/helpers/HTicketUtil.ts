@@ -95,19 +95,19 @@ export default class HTicketUtil {
 
         if (!interaction.member) {
             embed.setDescription(`Member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.channel) {
             embed.setDescription(`Channel not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.guild) {
             embed.setDescription(`Guild not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -115,28 +115,28 @@ export default class HTicketUtil {
 
         if (!threadChannel) {
             embed.setDescription(`Thread Channel not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const utilityTicket: UtilityTicket | null = await UtilityTicket.findOne({ where: { thread_id: threadChannel.id } })
         if (!utilityTicket) {
             embed.setDescription(`Utility Ticket not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator } });
         if (!discordUser) {
             embed.setDescription(`Your account is not registered to our system.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const characterTicket: Mir4CharacterTicket | null = await Mir4CharacterTicket.findOne({ where: { discord_id: discordUser.id, ticket_id: utilityTicket.id } })
         if (!characterTicket) {
             embed.setDescription(`Unable to close, ticket is owned by ${HDiscordBot.tagUser(interaction.member.user.id)}.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -145,7 +145,7 @@ export default class HTicketUtil {
         threadChannel.setLocked(true)
         threadChannel.setArchived(true)
 
-        await interaction.followUp({
+        await interaction.editReply({
             embeds: [embed]
         })
         return;
@@ -220,13 +220,12 @@ export default class HTicketUtil {
      */
     @ModalComponent()
     async replyTicketModal(interaction: ModalSubmitInteraction): Promise<void> {
-
-        await interaction.deferReply();
-
         try {
             const [ticketReply] = ["ticketReply"].map((id) =>
                 interaction.fields.getTextInputValue(id)
             );
+
+            await interaction.deferReply();
 
             if (!interaction.member) {
                 CLogger.error(`Member not found.`);
@@ -247,9 +246,9 @@ export default class HTicketUtil {
                     iconURL: 'attachment://embed-footer.png',
                 });
 
-            await HServerUtil.logVerification(interaction.client, embed)
+            interaction.editReply(ticketReply)
 
-            interaction.followUp(ticketReply)
+            await HServerUtil.logVerification(interaction.client, embed)
         } catch (error) {
             CLogger.error(`An exception has occured in Ticket Reply: ${error}`)
         }

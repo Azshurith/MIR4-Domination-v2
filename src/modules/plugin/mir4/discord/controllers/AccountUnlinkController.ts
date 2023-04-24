@@ -41,6 +41,7 @@ export default class AccountUnlinkController implements APIController {
      * @returns {Promise<void>} - Promise which resolves after the account unlink is completed. 
      */
     async fetch(request: AccountUnlinkRequest): Promise<void> {
+
         const embed: EmbedBuilder = new EmbedBuilder()
             .setTitle("Character Unlink")
             .setColor(Colors.Red)
@@ -51,77 +52,81 @@ export default class AccountUnlinkController implements APIController {
 
         const interaction: ModalSubmitInteraction<CacheType> = request.params.interaction
 
+        await interaction.deferReply({
+            ephemeral: true
+        });
+
         if (request.params.text.toLocaleLowerCase() != "confirm") {
             embed.setDescription(`Please write down **Confirm**.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.member) {
             embed.setDescription(`Member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.guild) {
             embed.setDescription(`Guild not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         let discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator } });
         if (!discordUser) {
             embed.setDescription(`Your account is not registered to our system.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         let characterDiscord: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { discord_id: discordUser.id, is_unlink: false } });
         if (!characterDiscord) {
             embed.setDescription(`Your discord is not linked to any of the characters.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const character: Mir4Character | null = await Mir4Character.findOne({ where: { id: characterDiscord.character_id } });
         if (!character) {
             embed.setDescription(`Your character data is not in our system.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const characterserver: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { character_id: character.id } });
         if (!characterserver) {
             embed.setDescription(`Character Server not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const server: Mir4Server | null = await Mir4Server.findOne({ where: { id: characterserver.server_id } });
         if (!server) {
             embed.setDescription(`Server is not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const permission = await HDiscordBot.checkPermissionThruInteraction(interaction, "ChangeNickname")
         if (!permission) {
             embed.setDescription(`Bot does not have Change Nickname Permission.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const permissionManageRole = await HDiscordBot.checkPermissionThruInteraction(interaction, "ManageRoles")
         if (!permissionManageRole) {
             embed.setDescription(`Bot does not have Manage Role Permission.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const member = await interaction.guild.members.fetch(interaction.member.user.id);
         if (!member) {
             embed.setDescription(`Guild member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -132,20 +137,19 @@ export default class AccountUnlinkController implements APIController {
         embed.setColor(Colors.Green)
             .setDescription(`Successfully unlinked your discord account.`)
 
+        await interaction.editReply({
+            embeds: [embed],
+            files: [
+                new AttachmentBuilder(`${process.cwd()}/src/modules/core/resources/images/DominationFooter.png`, { name: 'embed-footer.png' })
+            ]
+        })
+
         await Mir4CharacterDiscord.update({ id: characterDiscord.id }, { is_unlink: true })
 
         const roleServer: string = `${HDiscordConfig.loadEnv(`discord.server.roles.server.name.prefix`)}${server.name}`
         const roleMember: string = HDiscordConfig.loadEnv(`discord.server.roles.member.name`)
         await HDiscordBot.removeRoleFromUser(member, roleServer)
         await HDiscordBot.removeRoleFromUser(member, roleMember)
-
-        await interaction.followUp({
-            embeds: [embed],
-            ephemeral: true,
-            files: [
-                new AttachmentBuilder(`${process.cwd()}/src/modules/core/resources/images/DominationFooter.png`, { name: 'embed-footer.png' })
-            ]
-        });
 
         embed.setDescription(`${HDiscordBot.tagUser(member.user.id)} has successfully unlinked the character \`${character.username}\` to their discord account.`)
             .setColor(Colors.Red)

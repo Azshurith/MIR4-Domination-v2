@@ -53,36 +53,40 @@ export default class AccountTicketController implements APIController {
         const characterName: string = request.params.characterName
         const serverName: string = request.params.serverName
 
+        await interaction.deferReply({
+            ephemeral: true
+        });
+
         if (!interaction.member) {
             embed.setDescription(`Member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.guild) {
             embed.setDescription(`Guild not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const character: Mir4Character | null = await Mir4Character.findOne({ where: { username: characterName } });
         if (!character) {
             embed.setDescription(`The character \`${characterName}\` is not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const server: Mir4Server | null = await Mir4Server.findOne({ where: { name: serverName } });
         if (!server) {
             embed.setDescription(`The server \`${serverName}\` is not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const characterserver: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { server_id: server.id, character_id: character.id } });
         if (!characterserver) {
             embed.setDescription(`Character \`${characterName}\` is not found in Server \`${serverName}\`.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -94,7 +98,7 @@ export default class AccountTicketController implements APIController {
         let characterDiscord: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { discord_id: discordUser.id, is_unlink: false } });
         if (characterDiscord) {
             embed.setDescription(`Your discord is already linked.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -119,7 +123,7 @@ export default class AccountTicketController implements APIController {
         const channel = await HTicketUtil.createTicket(this._client, interaction.member, character, discordUser, ticketEmbed)
         if (!channel) {
             embed.setDescription(`Channel not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -128,13 +132,12 @@ export default class AccountTicketController implements APIController {
         embed.setDescription(`Your ticket is now created ${HDiscordBot.tagChannel(channel.id)}.`)
             .setColor(Colors.Green)
 
-        await interaction.followUp({
+        await interaction.editReply({
             embeds: [embed],
-            ephemeral: true,
             files: [
                 new AttachmentBuilder(`${process.cwd()}/src/modules/core/resources/images/DominationFooter.png`, { name: 'embed-footer.png' })
             ]
-        });
+        })
         
         embed.setDescription(`${HDiscordBot.tagUser(member.user.id)} has created a ticket ${HDiscordBot.tagChannel(channel.id)}`)
         await HServerUtil.logVerification(this._client, embed)

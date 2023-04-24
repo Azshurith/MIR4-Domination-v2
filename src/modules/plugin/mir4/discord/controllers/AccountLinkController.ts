@@ -53,36 +53,40 @@ export default class AccountLinkController implements APIController {
         const characterName: string = request.params.characterName
         const serverName: string = request.params.serverName
 
+        await interaction.deferReply({
+            ephemeral: true
+        });
+
         if (!interaction.member) {
             embed.setDescription(`Member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         if (!interaction.guild) {
             embed.setDescription(`Guild not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const character: Mir4Character | null = await Mir4Character.findOne({ where: { username: characterName } });
         if (!character) {
             embed.setDescription(`The character \`${characterName}\` is not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const server: Mir4Server | null = await Mir4Server.findOne({ where: { name: serverName } });
         if (!server) {
             embed.setDescription(`The server \`${serverName}\` is not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const characterserver: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { server_id: server.id, character_id: character.id } });
         if (!characterserver) {
             embed.setDescription(`Character \`${characterName}\` is not found in Server \`${serverName}\`.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -94,35 +98,35 @@ export default class AccountLinkController implements APIController {
         let characterDiscord1: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { discord_id: discordUser.id, is_unlink: false } });
         if (characterDiscord1) {
             embed.setDescription(`Your discord is already linked.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         let characterDiscord2: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { character_id: character.id, is_unlink: false } });
         if (characterDiscord2) {
             embed.setDescription(`The character \`${characterName}\` is already linked to someone else.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const permissionNickName = await HDiscordBot.checkPermissionThruInteraction(interaction, "ChangeNickname")
         if (!permissionNickName) {
             embed.setDescription(`Bot does not have Change Nickname Permission.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const permissionManageRole = await HDiscordBot.checkPermissionThruInteraction(interaction, "ManageRoles")
         if (!permissionManageRole) {
             embed.setDescription(`Bot does not have Manage Role Permission.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
         const member = await interaction.guild.members.fetch(interaction.member.user.id);
         if (!member) {
             embed.setDescription(`Guild member not found.`)
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
             return;
         }
 
@@ -140,13 +144,12 @@ export default class AccountLinkController implements APIController {
         await HDiscordBot.addRoleToUser(member, roleServer)
         await HDiscordBot.addRoleToUser(member, roleMember)
 
-        await interaction.followUp({
+        await interaction.editReply({
             embeds: [embed],
-            ephemeral: true,
             files: [
                 new AttachmentBuilder(`${process.cwd()}/src/modules/core/resources/images/DominationFooter.png`, { name: 'embed-footer.png' })
             ]
-        });
+        })
         
         embed.setDescription(`${HDiscordBot.tagUser(member.user.id)} has successfully linked the character \`${characterName}\` to their discord account.`)
         await HServerUtil.logVerification(this._client, embed)
