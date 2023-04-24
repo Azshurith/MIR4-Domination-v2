@@ -128,7 +128,7 @@ export default class AccountTicketController implements APIController {
         embed.setDescription(`Your ticket is now created ${HDiscordBot.tagChannel(channel.id)}.`)
             .setColor(Colors.Green)
 
-        await interaction.reply({
+        await interaction.followUp({
             embeds: [embed],
             ephemeral: true,
             files: [

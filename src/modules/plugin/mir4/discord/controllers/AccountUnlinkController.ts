@@ -3,9 +3,13 @@ import { APIController } from "../../../../core/interface/controllers/APIControl
 import { DiscordUser } from "../../../../core/models/User.js";
 import { Mir4CharacterDiscord } from "../models/CharacterDiscord.js";
 import { Mir4Character } from "../models/Character.js";
+import { Mir4Server } from "../models/Server.js";
+import { Mir4CharacterServer } from "../models/CharacterServer.js";
 import { AccountUnlinkRequest } from "../interface/IAccountUnlink";
 import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 import HServerUtil from "../../../../core/helpers/HServerUtil.js";
+import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
+
 /**
  * Controller class for unlinking MIR4 account to discord.
  *
@@ -86,9 +90,30 @@ export default class AccountUnlinkController implements APIController {
             return;
         }
 
+        const characterserver: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { character_id: character.id } });
+        if (!characterserver) {
+            embed.setDescription(`Character Server not found.`)
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
+        const server: Mir4Server | null = await Mir4Server.findOne({ where: { id: characterserver.server_id } });
+        if (!server) {
+            embed.setDescription(`Server is not found.`)
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
         const permission = await HDiscordBot.checkPermissionThruInteraction(interaction, "ChangeNickname")
         if (!permission) {
             embed.setDescription(`Bot does not have Change Nickname Permission.`)
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
+        const permissionManageRole = await HDiscordBot.checkPermissionThruInteraction(interaction, "ManageRoles")
+        if (!permissionManageRole) {
+            embed.setDescription(`Bot does not have Manage Role Permission.`)
             await interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
@@ -107,9 +132,14 @@ export default class AccountUnlinkController implements APIController {
         embed.setColor(Colors.Green)
             .setDescription(`Successfully unlinked your discord account.`)
 
-        await Mir4CharacterDiscord.update({id: characterDiscord.id }, { is_unlink: true })
+        await Mir4CharacterDiscord.update({ id: characterDiscord.id }, { is_unlink: true })
 
-        await interaction.reply({
+        const roleServer: string = `${HDiscordConfig.loadEnv(`discord.server.roles.server.name.prefix`)}${server.name}`
+        const roleMember: string = HDiscordConfig.loadEnv(`discord.server.roles.member.name`)
+        await HDiscordBot.removeRoleFromUser(member, roleServer)
+        await HDiscordBot.removeRoleFromUser(member, roleMember)
+
+        await interaction.followUp({
             embeds: [embed],
             ephemeral: true,
             files: [
@@ -119,7 +149,7 @@ export default class AccountUnlinkController implements APIController {
 
         embed.setDescription(`${HDiscordBot.tagUser(member.user.id)} has successfully unlinked the character \`${character.username}\` to their discord account.`)
             .setColor(Colors.Red)
-            
+
         await HServerUtil.logVerification(this._client, embed)
     }
 

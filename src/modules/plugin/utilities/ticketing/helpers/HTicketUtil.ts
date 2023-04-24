@@ -82,6 +82,9 @@ export default class HTicketUtil {
      */
     @ButtonComponent({ id: "closeTicket" })
     async closeTicket(interaction: ButtonInteraction): Promise<void> {
+
+        await interaction.deferReply();
+
         const embed: EmbedBuilder = new EmbedBuilder()
             .setTitle("Close Ticket")
             .setColor(Colors.Green)
@@ -142,7 +145,7 @@ export default class HTicketUtil {
         threadChannel.setLocked(true)
         threadChannel.setArchived(true)
 
-        await interaction.reply({
+        await interaction.followUp({
             embeds: [embed]
         })
         return;
@@ -156,7 +159,7 @@ export default class HTicketUtil {
      */
     @ButtonComponent({ id: "respondTicket" })
     respondTicket(interaction: ButtonInteraction): void {
-        const roleId: string = HDiscordConfig.loadEnv(`discord.server.roles.moderator`)
+        const roleName: string = HDiscordConfig.loadEnv(`discord.server.roles.moderator.name`)
         if (!interaction.client.user) {
             CLogger.error(`User not found.`);
             return;
@@ -172,7 +175,7 @@ export default class HTicketUtil {
             return;
         }
 
-        const role: Role | undefined = interaction.guild.roles.cache.find(role => role.id === roleId);
+        const role: Role | undefined = interaction.guild.roles.cache.find(role => role.name === roleName);
 
         if (!role) {
             CLogger.error(`Role not found.`);
@@ -217,6 +220,9 @@ export default class HTicketUtil {
      */
     @ModalComponent()
     async replyTicketModal(interaction: ModalSubmitInteraction): Promise<void> {
+
+        await interaction.deferReply();
+
         try {
             const [ticketReply] = ["ticketReply"].map((id) =>
                 interaction.fields.getTextInputValue(id)
@@ -243,7 +249,7 @@ export default class HTicketUtil {
 
             await HServerUtil.logVerification(interaction.client, embed)
 
-            interaction.reply(ticketReply)
+            interaction.followUp(ticketReply)
         } catch (error) {
             CLogger.error(`An exception has occured in Ticket Reply: ${error}`)
         }

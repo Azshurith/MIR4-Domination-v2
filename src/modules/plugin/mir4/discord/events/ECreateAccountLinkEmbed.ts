@@ -117,6 +117,8 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
                 interaction.fields.getTextInputValue(id)
             );
 
+            await interaction.deferReply();
+
             await new AccountLinkController(interaction.client).fetch({
                 params: {
                     characterName: characterName,
@@ -171,6 +173,8 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             const [leaveConfirm] = ["leaveConfirm"].map((id) =>
                 interaction.fields.getTextInputValue(id)
             );
+
+            await interaction.deferReply();
 
             await new AccountUnlinkController(interaction.client).fetch({
                 params: {
@@ -247,6 +251,8 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             const [ticketUsername, ticketServer, ticketDescription] = ["ticketUsername", "ticketServer", "ticketDescription"].map((id) =>
                 interaction.fields.getTextInputValue(id)
             );
+
+            await interaction.deferReply();
 
             await new AccountTicketController(interaction.client).fetch({
                 params: {

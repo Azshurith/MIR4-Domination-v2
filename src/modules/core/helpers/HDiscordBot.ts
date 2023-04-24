@@ -1,4 +1,4 @@
-import { AnyThreadChannel, ChannelType, Client, FetchedThreads, ForumChannel, Guild, GuildMember, ModalSubmitInteraction, PermissionResolvable, TextChannel, ThreadChannel } from "discord.js";
+import { AnyThreadChannel, ChannelType, Client, FetchedThreads, ForumChannel, Guild, GuildMember, ModalSubmitInteraction, PermissionResolvable, Role, TextChannel, ThreadChannel } from "discord.js";
 import CLogger from "../interface/utilities/logger/controllers/CLogger.js";
 
 /**
@@ -40,18 +40,18 @@ export default class HDiscordBot {
 
             const channel: TextChannel = guild.channels.cache.find((channel) => channel.id === channelId) as TextChannel;
             if (!channel) {
-                CLogger.error(`[${import.meta.url}] Request Error > Channel not found: (${channelId})`);
+                CLogger.error(`Request Error > Channel not found: (${channelId})`);
                 return null;
             }
 
             if (!channel.isTextBased()) {
-                CLogger.error(`[${import.meta.url}] Request Error > Channel is not a text based channel: (${channelId})`);
+                CLogger.error(`Request Error > Channel is not a text based channel: (${channelId})`);
                 return null;
             }
 
             return channel;
         } catch (error) {
-            CLogger.error(`[${import.meta.url}] Request Error > Server Error: (${error})`);
+            CLogger.error(`Request Error > Server Error: (${error})`);
         }
     }
 
@@ -67,24 +67,24 @@ export default class HDiscordBot {
         try {
             const guild: Guild | undefined = client.guilds.cache.find((guild) => guild.name === serverName);
             if (!guild) {
-                CLogger.error(`[${import.meta.url}] Request Error > Server not found: (${serverName})`);
+                CLogger.error(`Request Error > Server not found: (${serverName})`);
                 return null;
             }
 
             const channel: TextChannel = guild.channels.cache.find((channel) => channel.name === channelName) as TextChannel;
             if (!channel) {
-                CLogger.error(`[${import.meta.url}] Request Error > Channel not found: (${channelName})`);
+                CLogger.error(`Request Error > Channel not found: (${channelName})`);
                 return null;
             }
 
             if (!channel.isTextBased()) {
-                CLogger.error(`[${import.meta.url}] Request Error > Channel is not a text based channel: (${channelName})`);
+                CLogger.error(`Request Error > Channel is not a text based channel: (${channelName})`);
                 return null;
             }
 
             return channel;
         } catch (error) {
-            CLogger.error(`[${import.meta.url}] Request Error > Server Error: (${error})`);
+            CLogger.error(`Request Error > Server Error: (${error})`);
         }
     }
 
@@ -101,7 +101,7 @@ export default class HDiscordBot {
         try {
             const channel: ForumChannel = this.getSpecificServerForumByName(client, serverName, forumName) as ForumChannel
             if (!channel) {
-                CLogger.error(`[${import.meta.url}] Request Error > Forum not found: (${forumName})`);
+                CLogger.error(`Request Error > Forum not found: (${forumName})`);
                 return null;
             }
 
@@ -124,7 +124,7 @@ export default class HDiscordBot {
 
             return thread;
         } catch (error) {
-            CLogger.error(`[${import.meta.url}] Request Error > Server Error: (${error})`);
+            CLogger.error(`Request Error > Server Error: (${error})`);
             return null;
         }
     }
@@ -142,26 +142,62 @@ export default class HDiscordBot {
         try {
             const guild: Guild | undefined = client.guilds.cache.find((guild) => guild.name === serverName);
             if (!guild) {
-                CLogger.error(`[${import.meta.url}] Request Error > Server not found: (${serverName})`);
+                CLogger.error(`Request Error > Server not found: (${serverName})`);
                 return null;
             }
 
             const channel: ForumChannel = guild.channels.cache.find((channel) => channel.name === forumName) as ForumChannel;
             if (!channel) {
-                CLogger.error(`[${import.meta.url}] Request Error > Forum not found: (${forumName})`);
+                CLogger.error(`Request Error > Forum not found: (${forumName})`);
                 return null;
             }
 
             if (channel.type !== ChannelType.GuildForum) {
-                CLogger.error(`[${import.meta.url}] Request Error > Channel is not a forum: (${forumName})`);
+                CLogger.error(`Request Error > Channel is not a forum: (${forumName})`);
                 return null;
             }
 
             return channel;
         } catch (error) {
-            CLogger.error(`[${import.meta.url}] Request Error > Server Error: (${error})`);
+            CLogger.error(`Request Error > Server Error: (${error})`);
             return null;
         }
+    }
+
+    /**
+     * Adds a role to a member in a guild.
+     * 
+     * @param {GuildMember} member - The guild member to add the role to.
+     * @param {string} name - The name of the role to be added.
+     * @returns {Promise<void>} A Promise that resolves once the role has been added to the member.
+     */
+    static async addRoleToUser(member: GuildMember, name: string): Promise<void> {
+        const role: Role | undefined = member.guild.roles.cache.find(role => role.name.toLowerCase() === name.toLowerCase());
+
+        if (role == null) {
+            CLogger.error(`Request Error > Role not found: (${name})`);
+            return;
+        }
+
+        await member.roles.add(role);
+    }
+
+    /**
+     * Removes a role to a member in a guild.
+     * 
+     * @param {GuildMember} member - The guild member to add the role to.
+     * @param {string} name - The name of the role to be added.
+     * @returns {Promise<void>} A Promise that resolves once the role has been added to the member.
+     */
+    static async removeRoleFromUser(member: GuildMember, name: string): Promise<void> {
+        const role: Role | undefined = member.guild.roles.cache.find(role => role.name.toLowerCase() === name.toLowerCase());
+
+        if (role == null) {
+            CLogger.error(`Request Error > Role not found: (${name})`);
+            return;
+        }
+
+        await member.roles.remove(role);
     }
 
     /**
@@ -186,7 +222,7 @@ export default class HDiscordBot {
             text = text.replace(/\[\/?strike\]/gs, "");
         } catch (error) {
             CLogger.error(
-                `[${import.meta.url}] Request Error > BBCode to Discord: (${error})`
+                `Request Error > BBCode to Discord: (${error})`
             );
         }
 

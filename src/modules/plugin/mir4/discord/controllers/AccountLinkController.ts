@@ -8,6 +8,7 @@ import { Mir4Server } from "../models/Server.js";
 import { AccountLinkRequest } from "../interface/IAccountLink.js";
 import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 import HServerUtil from "../../../../core/helpers/HServerUtil.js";
+import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
 
 /**
  * Controller class for linking MIR4 account to discord.
@@ -104,9 +105,16 @@ export default class AccountLinkController implements APIController {
             return;
         }
 
-        const permission = await HDiscordBot.checkPermissionThruInteraction(interaction, "ChangeNickname")
-        if (!permission) {
+        const permissionNickName = await HDiscordBot.checkPermissionThruInteraction(interaction, "ChangeNickname")
+        if (!permissionNickName) {
             embed.setDescription(`Bot does not have Change Nickname Permission.`)
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
+        const permissionManageRole = await HDiscordBot.checkPermissionThruInteraction(interaction, "ManageRoles")
+        if (!permissionManageRole) {
+            embed.setDescription(`Bot does not have Manage Role Permission.`)
             await interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
@@ -127,7 +135,12 @@ export default class AccountLinkController implements APIController {
 
         await Mir4CharacterDiscord.create({ character_id: character.id, discord_id: discordUser.id, is_unlink: false }).save();
 
-        await interaction.reply({
+        const roleServer: string = `${HDiscordConfig.loadEnv(`discord.server.roles.server.name.prefix`)}${server.name}`
+        const roleMember: string = HDiscordConfig.loadEnv(`discord.server.roles.member.name`)
+        await HDiscordBot.addRoleToUser(member, roleServer)
+        await HDiscordBot.addRoleToUser(member, roleMember)
+
+        await interaction.followUp({
             embeds: [embed],
             ephemeral: true,
             files: [
