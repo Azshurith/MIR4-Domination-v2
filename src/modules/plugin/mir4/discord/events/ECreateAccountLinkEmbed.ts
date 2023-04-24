@@ -55,7 +55,6 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             })
 
             await HDiscordConfig.loadDbConfig(`mir4.server.embed.verification`, message.id)
-            await HDiscordConfig.loadDbConfig(`discord.server.channel.ticket.count`, "1")
         }
     }
 
