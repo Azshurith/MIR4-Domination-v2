@@ -1,5 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm"
 import { Mir4CharacterDiscord } from "../../plugin/mir4/discord/models/CharacterDiscord.js"
+import { Mir4CharacterTicket } from "../../plugin/mir4/discord/models/CharacterTicket.js"
 
 /**
  * A class representing the Discord User model
@@ -29,11 +30,19 @@ export class DiscordUser extends BaseEntity {
     character_discords!: Relation<Mir4CharacterDiscord[]>
 
     /**
+     * One-to-Many relationship between Mir4Character and Mir4CharacterTicket entities.
+     * 
+     * @type {Mir4CharacterTicket[]}
+     */
+    @OneToMany((type) => Mir4CharacterTicket, (Mir4CharacterTicket: Mir4CharacterTicket) => Mir4CharacterTicket.discord)
+    character_tickets!: Relation<Mir4CharacterTicket[]>
+
+    /**
      * The unique identifier of the Discord Account data
      * 
      * @type {string}
      */
-    @Column({ nullable: false, unsigned: true, comment: `Discord Account Identity`, type: 'bigint' })
+    @Column({ nullable: false, unique: true, comment: `Discord Account Identity` })
     discord_id!: string
 
     /**

@@ -37,7 +37,7 @@ export class Mir4CharacterDiscord extends BaseEntity {
      */
     @ManyToOne((type) => DiscordUser, (DiscordUser: DiscordUser) => DiscordUser.character_discords)
     @JoinColumn({ name: "discord_id", referencedColumnName: "id", foreignKeyConstraintName: "characterdiscord_discord" })
-    discord!: Relation<DiscordUser>
+    discord!: Relation<DiscordUser>    
 
     /**
      * The character id of the CharacterDiscord

@@ -8,6 +8,7 @@ import { Mir4Server } from "../models/Server.js";
 import { AccountTicketRequest } from "../interface/IAccountTicket";
 import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 import HServerUtil from "../../../../core/helpers/HServerUtil.js";
+import HTicketUtil from "../../../utilities/ticketing/helpers/HTicketUtil.js";
 
 /**
  * Controller class for the account linking ticket MIR4 account to discord.
@@ -115,7 +116,7 @@ export default class AccountTicketController implements APIController {
                 inline: true
             })
 
-        const channel = await HServerUtil.createTicket(this._client, interaction.member, ticketEmbed)
+        const channel = await HTicketUtil.createTicket(this._client, interaction.member, character, discordUser, ticketEmbed)
         if (!channel) {
             embed.setDescription(`Channel not found.`)
             await interaction.reply({ embeds: [embed], ephemeral: true });

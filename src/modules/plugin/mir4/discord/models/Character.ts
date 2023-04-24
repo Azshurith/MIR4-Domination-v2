@@ -3,6 +3,7 @@ import { Mir4CharacterClan } from "./CharacterClan.js"
 import { Mir4CharacterClass } from "./CharacterClass.js"
 import { Mir4CharacterServer } from "./CharacterServer.js"
 import { Mir4CharacterDiscord } from "./CharacterDiscord.js"
+import { Mir4CharacterTicket } from "./CharacterTicket.js"
 
 /**
  * A class representing the MIR4 Character model
@@ -54,7 +55,16 @@ export class Mir4Character extends BaseEntity {
      */
     @OneToMany((type) => Mir4CharacterDiscord, (Mir4CharacterDiscord: Mir4CharacterDiscord) => Mir4CharacterDiscord.character)
     character_discords!: Relation<Mir4CharacterDiscord[]>
+
+    /**
+     * One-to-Many relationship between Mir4Character and Mir4CharacterTicket entities.
+     * 
+     * @type {Mir4CharacterTicket[]}
+     */
+    @OneToMany((type) => Mir4CharacterTicket, (Mir4CharacterTicket: Mir4CharacterTicket) => Mir4CharacterTicket.character)
+    character_tickets!: Relation<Mir4CharacterTicket[]>
     
+
     /**
      * The username of the Character
      * 
