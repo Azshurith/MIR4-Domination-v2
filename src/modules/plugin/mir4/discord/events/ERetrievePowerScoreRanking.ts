@@ -2,7 +2,7 @@ import { ArgsOf } from "discordx";
 import { Discord, On, Client } from "discordx";
 import { IOnReadyCron } from "../../../../core/interface/events/IOnReadyCron";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
-import RetrievePowerScoreRanking from "../controllers/RetrievePowerScoreRanking.js";
+import RetrievePowerScoreRankingController from "../controllers/RetrievePowerScoreRankingController.js";
 import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
 import * as Cron from "node-cron";
 
@@ -15,7 +15,7 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
             try {
                 CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
                 const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
-                await new RetrievePowerScoreRanking(client).fetch({
+                await new RetrievePowerScoreRankingController(client).fetch({
                     url: url,
                     params: {
                         ranktype: 1,

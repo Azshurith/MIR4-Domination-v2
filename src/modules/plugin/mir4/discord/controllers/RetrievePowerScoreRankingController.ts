@@ -26,7 +26,7 @@ import CLogger from "../../../../core/interface/utilities/logger/controllers/CLo
  * @author
  *  - Devitrax
  */
-export default class RetrievePowerScoreRanking implements APIController {
+export default class RetrievePowerScoreRankingController implements APIController {
 
     /**
      * @var {Client} client - The client object used to interact with the API.
