@@ -11,25 +11,25 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
 
     @On({ event: "ready" })
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
-        // Cron.schedule("* * * * *", async () => {
-        //     try {
-        //         CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
-        //         const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
-        //         await new RetrievePowerScoreRanking(client).fetch({
-        //             url: url,
-        //             params: {
-        //                 ranktype: 1,
-        //                 worldgroupid: 1,
-        //                 worldid: 1,
-        //             }
-        //         })
-        //         CLogger.info(`End > Retrieving Mir4 Leaderboard`);
-        //     } catch (error) {
-        //         CLogger.error(`API Error > Retrieving Mir4 Leaderboard: (${error})`);
-        //     }
-        // }, {
-        //     scheduled: true,
-        //     timezone: "Asia/Manila"
-        // });
+        Cron.schedule("0 0 * * *", async () => {
+            try {
+                CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
+                const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
+                await new RetrievePowerScoreRanking(client).fetch({
+                    url: url,
+                    params: {
+                        ranktype: 1,
+                        worldgroupid: 1,
+                        worldid: 1,
+                    }
+                })
+                CLogger.info(`End > Retrieving Mir4 Leaderboard`);
+            } catch (error) {
+                CLogger.error(`API Error > Retrieving Mir4 Leaderboard: (${error})`);
+            }
+        }, {
+            scheduled: true,
+            timezone: "Asia/Manila"
+        });
     }
 }

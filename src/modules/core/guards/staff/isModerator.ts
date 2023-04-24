@@ -15,29 +15,29 @@ import CLogger from "../../interface/utilities/logger/controllers/CLogger.js";
  */
 export async function isModerator(interaction: BaseInteraction, client: Client, next: Next): Promise<void> {
     if (!process.env.SERVER_MODERATOR_ROLE_ID) {
-        CLogger.error(`[${import.meta.url}] The SERVER_MODERATOR_ROLE_ID environment variable is not set.`);
+        CLogger.error(`The SERVER_MODERATOR_ROLE_ID environment variable is not set.`);
         return;
     }
 
     if (!client.user) {
-        CLogger.error(`[${import.meta.url}] User not found.`);
+        CLogger.error(`User not found.`);
         return;
     }
 
     if (!interaction.guild) {
-        CLogger.error(`[${import.meta.url}] Guild not found.`);
+        CLogger.error(`Guild not found.`);
         return;
     }
 
     if (!interaction.member) {
-        CLogger.error(`[${import.meta.url}] Member not found.`);
+        CLogger.error(`Member not found.`);
         return;
     }
 
     const role: Role | undefined = interaction.guild.roles.cache.find(role => role.id === process.env.SERVER_MODERATOR_ROLE_ID);
 
     if (!role) {
-        CLogger.error(`[${import.meta.url}] Role not found.`);
+        CLogger.error(`Role not found.`);
         return;
     }
 

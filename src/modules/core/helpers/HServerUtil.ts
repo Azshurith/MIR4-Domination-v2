@@ -22,9 +22,9 @@ export default class HServerUtil {
      */
     static async logVerification(client: Client, embed: EmbedBuilder): Promise<void> {
         const serverName: string = HDiscordConfig.loadEnv(`discord.server.name`)
-        const forumName: string = HDiscordConfig.loadEnv(`discord.server.forum.log.channel`)
-        const threadName: string = HDiscordConfig.loadEnv(`discord.server.forum.log.thread.verification`)
-        const threadContent: string = HDiscordConfig.loadEnv(`discord.server.forum.log.thread.verification.content`)
+        const forumName: string = HDiscordConfig.loadEnv(`discord.server.channel.log`)
+        const threadName: string = HDiscordConfig.loadEnv(`discord.server.channel.log.thread.verification`)
+        const threadContent: string = HDiscordConfig.loadEnv(`discord.server.channel.log.thread.verification.content`)
         const thread = await HDiscordBot.getSpecificServerForumThreadByName(client, serverName, forumName, threadName, threadContent)
 
         if (!thread) {
