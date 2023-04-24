@@ -12,6 +12,13 @@ import AccountTicketController from "../controllers/AccountTicketController.js";
 @Discord()
 export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
 
+    /**
+     * Called when the client becomes ready to start working.
+     * 
+     * @param {[member]} args The arguments for the ready event.
+     * @param {Client} client The Discord.js client.
+     * @returns {Promise<void>}
+     */
     @On({ event: "ready" })
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
         const verificationEmbed: string = await HDiscordConfig.loadDbConfig(`mir4.server.embed.verification`)
