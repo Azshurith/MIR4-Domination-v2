@@ -30,6 +30,7 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             const embed = new EmbedBuilder()
                 .setTitle(`Account Verification`)
                 .setDescription(`To access the rest of our Discord Channel, you may need to link your MIR4 character to your Discord account. If someone else has already linked your account, simply click the **Open a Ticket** button to raise a ticket.`)
+                .setThumbnail("https://file.mir4global.com/xdraco-thumb/Content/UI/Atlas_N_Resource/Icon/Pet/Pet_Portrait/Icon_Item_Pet_Dragon.png")
                 .setColor(Colors.Gold)
 
             const menuRow: ActionRowBuilder<MessageActionRowComponentBuilder> = new ActionRowBuilder<MessageActionRowComponentBuilder>()
