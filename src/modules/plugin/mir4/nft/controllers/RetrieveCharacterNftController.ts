@@ -56,7 +56,7 @@ export default class RetrieveCharacterNftController implements APIController {
             }
             const totalPages: number = Math.ceil(listResponse.data.data.totalCount / 20);
 
-            const filePath: string = `${process.cwd()}/src/modules/mir4/nft/resources/data/users/nfts-${request.languageCode}.json`;
+            const filePath: string = `${process.cwd()}/src/modules/plugin/mir4/nft/resources/data/users/nfts-${request.languageCode}.json`;
             const directoryPath: string = path.dirname(filePath);
 
             if (!fs.existsSync(directoryPath)) {
