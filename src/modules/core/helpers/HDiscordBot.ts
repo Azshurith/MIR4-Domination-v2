@@ -165,6 +165,24 @@ export default class HDiscordBot {
     }
 
     /**
+     * Search for a guild member with a given name in a specified guild.
+     *
+     * @param {Guild} guild - The guild to search in.
+     * @param {string} id - The id of the member to search for.
+     * @returns {Promise<GuildMember | null>} - A promise that resolves with the matching GuildMember object, or null if no match was found.
+     */
+    static async searchMemberFromGuild(guild: Guild, id: string): Promise<GuildMember | null> {
+        const member: GuildMember | undefined = guild.members.cache.find(member => member.id === id);
+
+        if (member == null) {
+            CLogger.error(`Request Error > Member not found: (${id})`);
+            return null;
+        }
+
+        return member;
+    }
+
+    /**
      * Adds a role to a member in a guild.
      * 
      * @param {GuildMember} member - The guild member to add the role to.
