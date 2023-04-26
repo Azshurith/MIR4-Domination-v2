@@ -58,7 +58,7 @@ export abstract class RetrievePowerScoreRankingCommand {
                 iconURL: "https://coinalpha.app/images/coin/1_20211022025215.png",
             });
 
-        const discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: characterId, discriminator: interaction.member!.user.discriminator } });
+        const discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: characterId } });
         if (!discordUser) {
             embed.setDescription(`${HDiscordBot.tagUser(characterId)} is not registered to our system.`)
             await interaction.editReply({ embeds: [embed] });
