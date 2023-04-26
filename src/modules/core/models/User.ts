@@ -10,7 +10,7 @@ import { Mir4CharacterTicket } from "../../plugin/mir4/discord/models/CharacterT
  * @author
  *  - Devitrax
  */
-@Entity(`discord_users`)
+@Entity(`discord_users`, { engine: 'InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_bin' })
 export class DiscordUser extends BaseEntity {
 
     /**

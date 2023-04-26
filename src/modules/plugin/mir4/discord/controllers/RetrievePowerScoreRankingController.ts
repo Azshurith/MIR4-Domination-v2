@@ -118,13 +118,8 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns {Promise<void>} A promise that resolves when the leaderboard data has been fetched and updated in the database.
      */
     async fetchServer(request: LeaderBoardRequest, continent: IContinent, server: IServer): Promise<void> {
-        const limit = pLimit(5);
-        let done = false;
-        let page = 1;
-
-        while (!done) {
-            CLogger.info(`Fetching Server ${continent.name} - ${server.name} on Page: ${page}`);
-            const fetchPromise = limit(() => this.fetchPlayers({
+        for (let page = 200; page >= 1; page--) {
+            await this.fetchPlayers({
                 url: request.url,
                 params: {
                     ranktype: request.params.ranktype,
@@ -133,13 +128,8 @@ export default class RetrievePowerScoreRankingController implements APIControlle
                     liststyle: "ol",
                     page: page
                 }
-            }, server));
-            const newData = await fetchPromise;
-            if (!newData) {
-                CLogger.info(`Finished Fetching Server: ${continent.name} - ${server.name}`);
-                done = true;
-            }
-            page++;
+            }, server) 
+            CLogger.info(`Fetching Server ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
         }
     }
 
