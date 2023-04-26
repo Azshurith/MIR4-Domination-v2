@@ -11,7 +11,7 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
 
     @On({ event: "ready" })
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
-        if (!HDiscordConfig.isLocalEnvironment()) return
+        if (HDiscordConfig.isLocalEnvironment()) return
         
         Cron.schedule("0 0 * * *", async () => {
             try {

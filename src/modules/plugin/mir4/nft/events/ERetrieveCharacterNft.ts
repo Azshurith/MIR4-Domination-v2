@@ -25,7 +25,7 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
      */
     @On({ event: "ready" })
     onReady([member]: ArgsOf<"ready">, client: Client): void {
-        if (!HDiscordConfig.isLocalEnvironment()) return
+        if (HDiscordConfig.isLocalEnvironment()) return
         
         Cron.schedule("* * * * *", async () => {
             try {
