@@ -25,6 +25,8 @@ export abstract class ERetrieveSteamPost implements IOnReadyCron {
      */
     @On({ event: "ready" })
     onReady([member]: ArgsOf<"ready">, client: Client): void {
+        if (!HDiscordConfig.isLocalEnvironment()) return
+        
         Cron.schedule("* * * * *", async () => {
             try {
                 CLogger.info(`Start > Retrieving MIR4 Steam Post`);

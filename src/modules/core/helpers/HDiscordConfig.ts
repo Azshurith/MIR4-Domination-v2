@@ -73,4 +73,13 @@ export default class HDiscordConfig {
         return process.env[path]!
     }
 
+    /**
+     * Determines if the current environment is the local environment.
+     * 
+     * @returns {boolean} True if the current environment is local, false otherwise.
+     */
+    static isLocalEnvironment(): boolean {
+        return this.loadEnv(`discord.bot.environment`).toLocaleLowerCase() == "local";
+    }
+
 }

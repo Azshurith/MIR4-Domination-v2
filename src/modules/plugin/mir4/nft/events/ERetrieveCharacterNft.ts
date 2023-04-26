@@ -3,6 +3,7 @@ import { Discord, On, Client } from "discordx";
 import { IOnReadyCron } from "../../../../core/interface/events/IOnReadyCron.js";
 import CRetrieveCharacterNft from "../controllers/RetrieveCharacterNftController.js";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
+import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
 import * as Cron from "node-cron";
 
 /**
@@ -24,6 +25,8 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
      */
     @On({ event: "ready" })
     onReady([member]: ArgsOf<"ready">, client: Client): void {
+        if (!HDiscordConfig.isLocalEnvironment()) return
+        
         Cron.schedule("* * * * *", async () => {
             try {
                 CLogger.info(`Start > Retrieving Character NFT`,);

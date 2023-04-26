@@ -3,9 +3,9 @@ import { Discord, On, Client } from "discordx";
 import { CoinGeckoClient } from "coingecko-api-v3"
 import { IOnReadyCron } from "../../../../core/interface/events/IOnReadyCron.js";
 import CRetrieveNFTCurrency from "../controllers/RetrieveNFTController.js";
+import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
 import * as Cron from "node-cron";
-
 /**
  * Represents an event triggered when retrieving a the MIR4 NFT Currency.
  *
@@ -25,6 +25,7 @@ export abstract class ERetrieveNFTCurrency implements IOnReadyCron {
      */
     @On({ event: "ready" })
     onReady([member]: ArgsOf<"ready">, client: Client): void {
+        if (!HDiscordConfig.isLocalEnvironment()) return
         const coinGecko: CoinGeckoClient = new CoinGeckoClient();
 
         Cron.schedule("* * * * *", async () => {
