@@ -1,20 +1,20 @@
 <div>
   <p align="center">
-    <a href="https://github.com/Invoke-Hub/Invoker" target="_blank" rel="nofollow">
-      <img src="https://github.com/Azshurith/MIR4-Atlas/blob/main/src/modules/core/resources/images/DominationLogo.png?raw=true" width="900" />
+    <a href="https://github.com/Azshurith/MIR4-Domination-v2" target="_blank" rel="nofollow">
+      <img src="https://github.com/Azshurith/MIR4-Domination-v2/blob/main/src/modules/core/resources/images/DominationLogo.png?raw=true" width="900" />
     </a>
   </p>
   <div align="center" class="badge-container">
     <a href="https://discord.gg/y5jkd2KgAS">
         <img src="https://img.shields.io/discord/1092811968705990769?color=5865F2&logo=discord&logoColor=white" alt="Discord server"/>
     </a>
-    <a href="https://github.com/Azshurith/MIR4-Atlas/issues">
+    <a href="https://github.com/Azshurith/MIR4-Domination-v2/issues">
         <img src="https://img.shields.io/github/issues/Azshurith/MIR4-Atlas" alt="Issues">
     </a>
-    <a href="https://github.com/Azshurith/MIR4-Atlas/stargazers">
+    <a href="https://github.com/Azshurith/MIR4-Domination-v2/stargazers">
         <img src="https://img.shields.io/github/stars/Azshurith/MIR4-Atlas" alt="Stars">
     </a>
-    <a href="https://github.com/Azshurith/MIR4-Atlas/blob/main/LICENSE">
+    <a href="https://github.com/Azshurith/MIR4-Domination-v2/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/Azshurith/MIR4-Atlas" alt="License">
     </a>
   </div>
