@@ -65,7 +65,7 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
 
         const newEmbed = new EmbedBuilder()
             .setTitle("Clan Details")
-            .setDescription(`${clan.name} is a clan from the server ${server.name}.`)
+            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i}/${totalPageCiel}.`)
             .setColor(Colors.Gold)
             .setFooter({
                 text: `${new Date()}`,
