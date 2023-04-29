@@ -127,7 +127,7 @@ export default class RetrieveCharacterNftController implements APIController {
             const listResponse: AxiosResponse<NFTListResponse, any> = await axios.get<NFTListResponse>(listUrl)
 
             await Promise.all(listResponse.data.data.lists.map(async (nft: List) => {
-                CLogger.info(`Retrieving MIR4 NFT Data: ${nft.characterName}`);
+                // CLogger.info(`Retrieving MIR4 NFT Data: ${nft.characterName}`);
                 listNfts.push(nft)
 
                 // await this.fetchSpirit({

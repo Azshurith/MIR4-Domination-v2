@@ -137,9 +137,9 @@ export default class RetrievePowerScoreRankingController implements APIControlle
 
         await HDiscordConfig.loadDbConfig(serverDate, todayDate)
 
-        pageNo -= 1;
-        for (let page = pageNo; page >= 1; page--) {
-            CLogger.info(`Start Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
+        while (pageNo >= 1) {
+            pageNo--
+            CLogger.info(`Start Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
             await this.fetchPlayers({
                 url: request.url,
                 params: {
@@ -147,11 +147,11 @@ export default class RetrievePowerScoreRankingController implements APIControlle
                     worldgroupid: continent.region,
                     worldid: server.id,
                     liststyle: "ol",
-                    page: page
+                    page: pageNo
                 }
             }, server) 
-            await HDiscordConfig.loadDbConfig(serverPage, `${page}`)      
-            CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
+            await HDiscordConfig.loadDbConfig(serverPage, pageNo.toString())      
+            CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
         }
     }
 
