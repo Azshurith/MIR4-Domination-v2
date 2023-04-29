@@ -14,7 +14,9 @@ const CLogger = winston.createLogger({
         new winston.transports.File({
             handleExceptions: true,
             filename: `./log/bot.log`,
-            format: winston.format.simple()
+            format: winston.format.printf(({ level, message, timestamp }) => {
+                return `(${timestamp}) [${level}]: ${message}`
+            })
         }),
         new winston.transports.Console({
             handleExceptions: true,
