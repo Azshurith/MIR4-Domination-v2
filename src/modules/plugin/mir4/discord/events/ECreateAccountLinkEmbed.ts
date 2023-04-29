@@ -90,7 +90,7 @@ export abstract class ECreateAccountLinkEmbed implements IOnReadyCron {
             .setCustomId("serverName")
             .setLabel("Server Name")
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder("Server Name")
+            .setPlaceholder("Asia11, INMENA11, EU11, SA11, NA11")
             .setRequired(true)
 
         const row1 = new ActionRowBuilder<TextInputBuilder>()
