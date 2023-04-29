@@ -14,9 +14,10 @@ import { Mir4Server } from "../models/Server.js";
 import { Mir4ServerRegion } from "../models/ServerRegion.js";
 import axios, { AxiosResponse } from "axios";
 import * as cheerio from "cheerio";
-import pLimit from 'p-limit';
 import queryString from "query-string";
 import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
+import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
+import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 
 /**
  * Controller class for retrieving power score ranking information for MIR4 NFTs.
@@ -106,6 +107,7 @@ export default class RetrievePowerScoreRankingController implements APIControlle
             }
         }
         await Promise.all(fetchPromises);
+        await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
         CLogger.info(`End Fetching Servers`);
     }
 
@@ -118,7 +120,26 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns {Promise<void>} A promise that resolves when the leaderboard data has been fetched and updated in the database.
      */
     async fetchServer(request: LeaderBoardRequest, continent: IContinent, server: IServer): Promise<void> {
-        for (let page = 200; page >= 1; page--) {
+        const serverPage = `${continent.name}.${server.name}.page`.toLowerCase()
+        const serverDate = `${continent.name}.${server.name}.date`.toLowerCase()
+        let pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage))
+        const lastUpdate = await HDiscordConfig.loadDbConfig(serverDate)
+        const todayDate = HDiscordBot.todayDate().toString();
+
+        if (lastUpdate == todayDate && pageNo <= 1) {
+            CLogger.info(`Skipping Server [Continent: ${continent.name}] [Server: ${server.name}] [Last Update: ${lastUpdate}]  [Today Date: ${todayDate}]`);
+            return;
+        }
+
+        if (lastUpdate != todayDate && pageNo <= 1) {
+            pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage, "200"))
+        }
+
+        await HDiscordConfig.loadDbConfig(serverDate, todayDate)
+
+        pageNo -= 1;
+        for (let page = pageNo; page >= 1; page--) {
+            CLogger.info(`Start Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
             await this.fetchPlayers({
                 url: request.url,
                 params: {
@@ -129,7 +150,8 @@ export default class RetrievePowerScoreRankingController implements APIControlle
                     page: page
                 }
             }, server) 
-            CLogger.info(`Fetching Server ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
+            await HDiscordConfig.loadDbConfig(serverPage, `${page}`)      
+            CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${page}]`);
         }
     }
 

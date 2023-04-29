@@ -61,6 +61,14 @@ export abstract class RetrievePowerScoreRankingCommand {
         
         interaction.reply("Retrieving...")
         try {
+            const isRunning = Boolean(await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking"))
+            if (!isRunning) {
+                CLogger.info(`End > Retrieving Mir4 is still running`);
+                return
+            }
+
+            await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "true")
+
             CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
             const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
             await new RetrievePowerScoreRankingController(interaction.client).fetch({

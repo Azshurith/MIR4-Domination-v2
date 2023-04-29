@@ -44,7 +44,6 @@
     "mysql": "^2.18.1",
     "node-cron": "^3.0.2",
     "orm": "^7.1.0",
-    "p-limit": "^4.0.0",
     "query-string": "^8.1.0",
     "reflect-metadata": "^0.1.13",
     "steamapi": "^2.2.0",

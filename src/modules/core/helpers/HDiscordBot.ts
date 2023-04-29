@@ -309,4 +309,14 @@ export default class HDiscordBot {
         return `<#${channelId}>`;
     }
 
+    /**
+     * Returns today date without the time
+     * 
+     * @returns {Date}
+     */
+    static todayDate(): Date {
+        const today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    }
+
 }

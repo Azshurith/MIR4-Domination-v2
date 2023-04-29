@@ -13,8 +13,18 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
         if (HDiscordConfig.isLocalEnvironment()) return
         
-        Cron.schedule("0 0 * * *", async () => {
+        await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
+
+        Cron.schedule("* * * * *", async () => {
             try {
+                const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking")
+                if (isRunning == "true") {
+                    CLogger.info(`End > Retrieving Mir4 Leaderboard is still running`);
+                    return
+                }
+
+                await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "true")
+
                 CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
                 const url: string = await HDiscordConfig.loadEnvConfig(`mir4.forum.leaderboard.url`)
                 await new RetrievePowerScoreRankingController(client).fetch({
