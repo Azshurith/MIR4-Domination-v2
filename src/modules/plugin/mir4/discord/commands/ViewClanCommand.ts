@@ -16,7 +16,7 @@ import { Mir4Server } from "../models/Server.js";
  * @returns {Promise<void>} - A Promise that resolves when the response is sent
  */
 const searchClan = async (interaction: AutocompleteInteraction): Promise<void> => {
-    const results = await Mir4Clan.find({
+    const results: Mir4Clan[] = await Mir4Clan.find({
         where: { name: Raw(alias => `LOWER(${alias}) Like "%${interaction.options.getFocused(true).value}%"`) },
         take: 25
     });
