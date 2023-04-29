@@ -3,7 +3,7 @@ import { Discord, Guard, Slash, SlashGroup, SlashOption } from "discordx"
 import { NotLinked } from "../guards/NotLinked.js";
 import { Mir4CharacterClan } from "../models/CharacterClan.js";
 import { Mir4Clan } from "../models/Clan.js";
-import { In, Like } from "typeorm";
+import { In, Raw } from "typeorm";
 import { Pagination, PaginationType } from "@discordx/pagination";
 import { Mir4Character } from "../models/Character.js";
 import { Mir4ClanServer } from "../models/ClanServer.js";
@@ -17,7 +17,7 @@ import { Mir4Server } from "../models/Server.js";
  */
 const searchClan = async (interaction: AutocompleteInteraction): Promise<void> => {
     const results = await Mir4Clan.find({
-        where: { name: Like(`%${interaction.options.getFocused(true).value}%`) },
+        where: { name: Raw(alias => `LOWER(${alias}) Like "%${interaction.options.getFocused(true).value}%"`) },
         take: 25
     });
     const mappedResults = results.map((value: Mir4Clan) => ({
@@ -39,10 +39,11 @@ const searchClan = async (interaction: AutocompleteInteraction): Promise<void> =
 const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder, clan: Mir4Clan, server: Mir4Server, limit: number): Promise<BaseMessageOptions[]> => {
 
     const totalPages: number = await Mir4CharacterClan.count({ where: { clan_id: clan.id, is_leave: false } });
+    const totalPageCiel: number = Math.ceil(totalPages / limit);
 
-    const pages: Promise<EmbedBuilder>[] = Array.from(Array(Math.ceil(totalPages / limit)).keys()).map(async (i) => {
+    const pages: Promise<EmbedBuilder>[] = Array.from(Array(totalPageCiel).keys()).map(async (i) => {
         embed.setTitle("Clan Details")
-            .setDescription(`${clan.name} is a clan from the server ${server.name}.`)
+            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i}/${totalPageCiel}.`)
             .setColor(Colors.Gold)
             .setFooter({
                 text: `${new Date()}`,
@@ -56,7 +57,7 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
             return embed;
         }
 
-        const characterIds = characterClan.map(character => character.character_id);
+        const characterIds: number[] = characterClan.map(character => character.character_id);
 
         const characters: Mir4Character[] = await Mir4Character.find({
             where: { id: In(characterIds) }
@@ -96,7 +97,6 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
 
 }
 
-
 /**
  * A class that provides the functionality to search for a clan.
  *
@@ -108,7 +108,6 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
 @SlashGroup({ description: "Interaction for the discord server", name: "mir4" })
 @SlashGroup("mir4")
 export abstract class RetrievePowerScoreRankingCommand {
-
 
     /**
      * Slash command to create a Discord embed.
@@ -124,7 +123,7 @@ export abstract class RetrievePowerScoreRankingCommand {
             description: "View MIR4 Clan",
             type: ApplicationCommandOptionType.String,
             required: true,
-            autocomplete: searchClan
+            autocomplete: await searchClan
         })
         clanName: string = "",
         interaction: CommandInteraction
