@@ -43,7 +43,7 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
 
     const pages: Promise<EmbedBuilder>[] = Array.from(Array(totalPageCiel).keys()).map(async (i) => {
         embed.setTitle("Clan Details")
-            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i}/${totalPageCiel}.`)
+            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i + 1}/${totalPageCiel}.`)
             .setColor(Colors.Gold)
             .setFooter({
                 text: `${new Date()}`,
@@ -65,7 +65,7 @@ const paginateClan = async (interaction: CommandInteraction, embed: EmbedBuilder
 
         const newEmbed = new EmbedBuilder()
             .setTitle("Clan Details")
-            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i}/${totalPageCiel}.`)
+            .setDescription(`${clan.name} is a clan from the server ${server.name}. Currently showing page ${i + 1}/${totalPageCiel}.`)
             .setColor(Colors.Gold)
             .setFooter({
                 text: `${new Date()}`,
