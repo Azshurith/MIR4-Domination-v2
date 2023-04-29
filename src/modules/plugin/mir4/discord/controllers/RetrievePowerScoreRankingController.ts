@@ -150,7 +150,8 @@ export default class RetrievePowerScoreRankingController implements APIControlle
                     page: pageNo
                 }
             }, server) 
-            await HDiscordConfig.loadDbConfig(serverPage, pageNo.toString())      
+
+            await HDiscordConfig.loadDbConfig(serverPage, lastUpdate != todayDate ? "200" : pageNo.toString()) 
             CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
         }
     }
