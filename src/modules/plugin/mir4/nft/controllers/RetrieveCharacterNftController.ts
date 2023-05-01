@@ -104,9 +104,10 @@ export default class RetrieveCharacterNftController implements APIController {
                 CLogger.info(`Updating nft list (${filePath}).`);
                 fs.writeFileSync(filePath, JSON.stringify(oldNft))
             }
-
         } catch (error) {
             CLogger.error(`API Error > NFT List Request: (${error})`);
+        } finally {
+            await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
         }
     }
 

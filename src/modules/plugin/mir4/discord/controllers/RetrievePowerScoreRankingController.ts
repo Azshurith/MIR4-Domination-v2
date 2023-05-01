@@ -50,9 +50,13 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns {Promise<void>} - A promise that resolves when the data has been fetched.
      */
     async fetch(request: LeaderBoardRequest): Promise<void> {
-        const continents: IContinent[] = await this.fetchContinents(`${request.url}?${queryString.stringify(request.params)}`)
-        await this.fetchClasses()
-        await this.fetchServers(request, continents);
+        try {
+            const continents: IContinent[] = await this.fetchContinents(`${request.url}?${queryString.stringify(request.params)}`)
+            await this.fetchClasses()
+            await this.fetchServers(request, continents);
+        } catch (error) {
+            CLogger.error(`Retrieve Power Score Fetch Exception: ${error}`);
+        }
     }
 
     /**
@@ -98,16 +102,22 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      */
     async fetchServers(request: LeaderBoardRequest, continents: IContinent[]): Promise<void> {
         CLogger.info(`Start Fetching Servers`);
-        const fetchPromises = [];
-        for (const continent of continents) {
-            CLogger.info(`Fetching Continent: ${continent.name}`);
-            for (const server of continent.servers) {
-                CLogger.info(`Fetching Server: ${server.name}`);
-                fetchPromises.push(this.fetchServer(request, continent, server)); //REMOVE AWAIT
+        try {
+            const fetchPromises = [];
+            for (const continent of continents) {
+                CLogger.info(`Fetching Continent: ${continent.name}`);
+                for (const server of continent.servers) {
+                    CLogger.info(`Fetching Server: ${server.name}`);
+                    fetchPromises.push(this.fetchServer(request, continent, server)); //REMOVE AWAIT
+                }
             }
+
+            await Promise.all(fetchPromises);
+        } catch (error) {
+            CLogger.error(`Fetch Server Promise All Exception: ${error}`);
+        } finally {
+            await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
         }
-        await Promise.all(fetchPromises);
-        await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
         CLogger.info(`End Fetching Servers`);
     }
 
@@ -120,39 +130,43 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns {Promise<void>} A promise that resolves when the leaderboard data has been fetched and updated in the database.
      */
     async fetchServer(request: LeaderBoardRequest, continent: IContinent, server: IServer): Promise<void> {
-        const serverPage = `${continent.name}.${server.name}.page`.toLowerCase()
-        const serverDate = `${continent.name}.${server.name}.date`.toLowerCase()
-        let pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage))
-        const lastUpdate = await HDiscordConfig.loadDbConfig(serverDate)
-        const todayDate = HDiscordBot.todayDate().toString();
+        try {
+            const serverPage = `${continent.name}.${server.name}.page`.toLowerCase()
+            const serverDate = `${continent.name}.${server.name}.date`.toLowerCase()
+            let pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage))
+            const lastUpdate = await HDiscordConfig.loadDbConfig(serverDate)
+            const todayDate = HDiscordBot.todayDate().toString();
 
-        if (lastUpdate == todayDate && pageNo <= 1) {
-            CLogger.info(`Skipping Server [Continent: ${continent.name}] [Server: ${server.name}] [Last Update: ${lastUpdate}]  [Today Date: ${todayDate}]`);
-            return;
-        }
+            if (lastUpdate == todayDate && pageNo <= 1) {
+                CLogger.info(`Skipping Server [Continent: ${continent.name}] [Server: ${server.name}] [Last Update: ${lastUpdate}]  [Today Date: ${todayDate}]`);
+                return;
+            }
 
-        if (lastUpdate != todayDate && pageNo <= 1) {
-            pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage, "200"))
-        }
+            if (lastUpdate != todayDate && pageNo <= 1) {
+                pageNo = Number(await HDiscordConfig.loadDbConfig(serverPage, "200"))
+            }
 
-        await HDiscordConfig.loadDbConfig(serverDate, todayDate)
+            await HDiscordConfig.loadDbConfig(serverDate, todayDate)
 
-        while (pageNo >= 1) {
-            pageNo--
-            CLogger.info(`Start Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
-            await this.fetchPlayers({
-                url: request.url,
-                params: {
-                    ranktype: request.params.ranktype,
-                    worldgroupid: continent.region,
-                    worldid: server.id,
-                    liststyle: "ol",
-                    page: pageNo
-                }
-            }, server) 
+            while (pageNo >= 1) {
+                pageNo--
+                CLogger.info(`Start Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
+                await this.fetchPlayers({
+                    url: request.url,
+                    params: {
+                        ranktype: request.params.ranktype,
+                        worldgroupid: continent.region,
+                        worldid: server.id,
+                        liststyle: "ol",
+                        page: pageNo
+                    }
+                }, server)
 
-            await HDiscordConfig.loadDbConfig(serverPage, lastUpdate != todayDate ? "200" : pageNo.toString()) 
-            CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
+                await HDiscordConfig.loadDbConfig(serverPage, lastUpdate != todayDate ? "200" : pageNo.toString())
+                CLogger.info(`End Fetching Server [Continent: ${continent.name}] [Server: ${server.name}] [Page: ${pageNo}]`);
+            }
+        } catch (error) {
+            CLogger.error(`Fetch Server Exception: ${error}`);
         }
     }
 
@@ -164,73 +178,77 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns A boolean value indicating if the fetch operation was successful or not.
      */
     async fetchPlayers(request: LeaderBoardRequest, server: IServer): Promise<boolean> {
-        const url: string = `${request.url}?${queryString.stringify(request.params)}`;
-        const response: AxiosResponse<any> = await axios.get<any>(url);
-        const $: cheerio.CheerioAPI = cheerio.load(response.data, { xmlMode: true });
+        try {
+            const url: string = `${request.url}?${queryString.stringify(request.params)}`;
+            const response: AxiosResponse<any> = await axios.get<any>(url);
+            const $: cheerio.CheerioAPI = cheerio.load(response.data, { xmlMode: true });
 
-        if (!response.data || response.data.trim() === '') {
-            return false;
-        }
-
-        for (const element of $('tr.list_article')) {
-            try {
-                const rank = Number($(element).find('.num').text().trim());
-                const userName = $(element).find('.user_name').text().trim();
-                const clanName = $(element).find('td:nth-of-type(3) span').text().trim();
-                const powerScore = parseFloat($(element).find('.text_right span').text().trim().replaceAll(',', ''));
-                const clazz = Number($(element).find('.user_icon').attr('style')!.match(/background-image: url\((.*?)\);/)![1]!.match(/char_(\d+)\.png/)![1]);
-
-                let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
-                if (!world) {
-                    CLogger.error(`Unable to find Server [${request.params.worldid}], skipping User [${userName}].`);
-                    continue;
-                }
-
-                let character: Mir4Character | null = await Mir4Character.findOne({ where: { username: userName } });
-                if (!character) {
-                    character = await Mir4Character.create({ username: userName, powerscore: powerScore, checked_at: new Date() }).save();
-                } else {
-                    await Mir4Character.update({ id: character.id }, { powerscore: powerScore, checked_at: new Date() });
-                }
-
-                let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: clanName } });
-                if (!clan) {
-                    clan = await Mir4Clan.create({ name: clanName, checked_at: new Date() }).save();
-                } else {
-                    await Mir4Clan.update({ id: clan.id }, { name: clanName, checked_at: new Date() });
-                }
-
-                let characterClan: Mir4CharacterClan | null = await Mir4CharacterClan.findOne({ where: { character_id: character.id, clan_id: clan.id, is_leave: false } });
-                if (!characterClan) {
-                    characterClan = await Mir4CharacterClan.create({ character_id: character.id, clan_id: clan.id, is_leave: false, checked_at: new Date() }).save();
-                } else {
-                    await Mir4CharacterClan.update({ id: characterClan.id, is_leave: false }, { checked_at: new Date() });
-                    await Mir4CharacterClan.update({ id: Not(characterClan.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
-                }
-
-                let clanServer: Mir4ClanServer | null = await Mir4ClanServer.findOne({ where: { clan_id: clan.id, server_id: world.id , is_disband: false } });
-                if (!clanServer) {
-                    clanServer = await Mir4ClanServer.create({ clan_id: clan.id, server_id: world.id, is_disband: false, checked_at: new Date() }).save();
-                } else {
-                    await Mir4ClanServer.update({ id: clanServer.id, is_disband: false }, { checked_at: new Date() });
-                }
-
-                let characterClass: Mir4CharacterClass | null = await Mir4CharacterClass.findOne({ where: { character_id: character.id, class_id: clazz } });
-                if (!characterClass) {
-                    characterClass = await Mir4CharacterClass.create({ character_id: character.id, class_id: clazz, checked_at: new Date() }).save();
-                }
-
-                let characterServer: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { character_id: character.id, server_id: world.id, is_leave: false } });
-                if (!characterServer) {
-                    characterServer = await Mir4CharacterServer.create({ character_id: character.id, server_id: world.id, is_leave: false, checked_at: new Date() }).save();
-                } else {
-                    await Mir4CharacterServer.update({ id: characterServer.id, is_leave: false }, { checked_at: new Date() });
-                    await Mir4CharacterServer.update({ id: Not(characterServer.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
-                }
-            } catch (error) {
-                console.log(error);
-                CLogger.error(`Failed to process ${url} : ${error}`);
+            if (!response.data || response.data.trim() === '') {
+                return false;
             }
+
+            for (const element of $('tr.list_article')) {
+                try {
+                    const rank = Number($(element).find('.num').text().trim());
+                    const userName = $(element).find('.user_name').text().trim();
+                    const clanName = $(element).find('td:nth-of-type(3) span').text().trim();
+                    const powerScore = parseFloat($(element).find('.text_right span').text().trim().replaceAll(',', ''));
+                    const clazz = Number($(element).find('.user_icon').attr('style')!.match(/background-image: url\((.*?)\);/)![1]!.match(/char_(\d+)\.png/)![1]);
+
+                    let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
+                    if (!world) {
+                        CLogger.error(`Unable to find Server [${request.params.worldid}], skipping User [${userName}].`);
+                        continue;
+                    }
+
+                    let character: Mir4Character | null = await Mir4Character.findOne({ where: { username: userName } });
+                    if (!character) {
+                        character = await Mir4Character.create({ username: userName, powerscore: powerScore, checked_at: new Date() }).save();
+                    } else {
+                        await Mir4Character.update({ id: character.id }, { powerscore: powerScore, checked_at: new Date() });
+                    }
+
+                    let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: clanName } });
+                    if (!clan) {
+                        clan = await Mir4Clan.create({ name: clanName, checked_at: new Date() }).save();
+                    } else {
+                        await Mir4Clan.update({ id: clan.id }, { name: clanName, checked_at: new Date() });
+                    }
+
+                    let characterClan: Mir4CharacterClan | null = await Mir4CharacterClan.findOne({ where: { character_id: character.id, clan_id: clan.id, is_leave: false } });
+                    if (!characterClan) {
+                        characterClan = await Mir4CharacterClan.create({ character_id: character.id, clan_id: clan.id, is_leave: false, checked_at: new Date() }).save();
+                    } else {
+                        await Mir4CharacterClan.update({ id: characterClan.id, is_leave: false }, { checked_at: new Date() });
+                        await Mir4CharacterClan.update({ id: Not(characterClan.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
+                    }
+
+                    let clanServer: Mir4ClanServer | null = await Mir4ClanServer.findOne({ where: { clan_id: clan.id, server_id: world.id, is_disband: false } });
+                    if (!clanServer) {
+                        clanServer = await Mir4ClanServer.create({ clan_id: clan.id, server_id: world.id, is_disband: false, checked_at: new Date() }).save();
+                    } else {
+                        await Mir4ClanServer.update({ id: clanServer.id, is_disband: false }, { checked_at: new Date() });
+                    }
+
+                    let characterClass: Mir4CharacterClass | null = await Mir4CharacterClass.findOne({ where: { character_id: character.id, class_id: clazz } });
+                    if (!characterClass) {
+                        characterClass = await Mir4CharacterClass.create({ character_id: character.id, class_id: clazz, checked_at: new Date() }).save();
+                    }
+
+                    let characterServer: Mir4CharacterServer | null = await Mir4CharacterServer.findOne({ where: { character_id: character.id, server_id: world.id, is_leave: false } });
+                    if (!characterServer) {
+                        characterServer = await Mir4CharacterServer.create({ character_id: character.id, server_id: world.id, is_leave: false, checked_at: new Date() }).save();
+                    } else {
+                        await Mir4CharacterServer.update({ id: characterServer.id, is_leave: false }, { checked_at: new Date() });
+                        await Mir4CharacterServer.update({ id: Not(characterServer.id), character_id: character.id, is_leave: false }, { is_leave: true, checked_at: new Date() });
+                    }
+                } catch (error) {
+                    console.log(error);
+                    CLogger.error(`Failed to process ${url} : ${error}`);
+                }
+            }
+        } catch (error) {
+            CLogger.error(`Fetch Players Exception: ${error}`);
         }
 
         return true;
@@ -247,60 +265,64 @@ export default class RetrievePowerScoreRankingController implements APIControlle
         const $: cheerio.CheerioAPI = cheerio.load(response.data);
         const continents: IContinent[] = [];
 
-        $('ul li').each((i: number, li: any) => {
-            const a: any = $(li).find('a');
-            const match: RegExpMatchArray | null = a.attr('href')?.match(/set_world\('(\d+)',\s*'(.+)',\s*'(\d+)',\s*'(.+)'\)/);
-            if (!match) return;
+        try {
+            $('ul li').each((i: number, li: any) => {
+                const a: any = $(li).find('a');
+                const match: RegExpMatchArray | null = a.attr('href')?.match(/set_world\('(\d+)',\s*'(.+)',\s*'(\d+)',\s*'(.+)'\)/);
+                if (!match) return;
 
-            const [, region, regionName, serverId, serverName]: string[] = match;
-            if (!region || !regionName || !serverId || !serverName) return;
+                const [, region, regionName, serverId, serverName]: string[] = match;
+                if (!region || !regionName || !serverId || !serverName) return;
 
-            const continent: IContinent | undefined = continents.find((c: IContinent) => c.region === parseInt(region));
-            if (continent) {
-                continent.servers.push({
-                    id: parseInt(serverId),
-                    name: serverName.trim(),
-                });
-            } else {
-                continents.push({
-                    region: parseInt(region),
-                    name: regionName.trim(),
-                    servers: [
-                        {
-                            id: parseInt(serverId),
-                            name: serverName.trim(),
-                        },
-                    ],
-                });
+                const continent: IContinent | undefined = continents.find((c: IContinent) => c.region === parseInt(region));
+                if (continent) {
+                    continent.servers.push({
+                        id: parseInt(serverId),
+                        name: serverName.trim(),
+                    });
+                } else {
+                    continents.push({
+                        region: parseInt(region),
+                        name: regionName.trim(),
+                        servers: [
+                            {
+                                id: parseInt(serverId),
+                                name: serverName.trim(),
+                            },
+                        ],
+                    });
+                }
+            });
+
+            let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: "--" } });
+            if (!clan) {
+                clan = await Mir4Clan.create({ name: "--", checked_at: new Date() }).save();
             }
-        });
+            for (const continent of continents) {
+                let region: Mir4Region | null = await Mir4Region.findOne({ where: { name: continent.name } });
 
-        let clan: Mir4Clan | null = await Mir4Clan.findOne({ where: { name: "--" } });
-        if (!clan) {
-            clan = await Mir4Clan.create({ name: "--", checked_at: new Date() }).save();
-        }
-        for (const continent of continents) {
-            let region: Mir4Region | null = await Mir4Region.findOne({ where: { name: continent.name } });
-
-            if (!region) {
-                region = await Mir4Region.create({ name: continent.name }).save();
-            }
-
-            for (const server of continent.servers) {
-                let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
-
-                if (!world) {
-                    world = await Mir4Server.create({ name: server.name }).save();
+                if (!region) {
+                    region = await Mir4Region.create({ name: continent.name }).save();
                 }
 
-                const worldregion: Mir4ServerRegion | null = await Mir4ServerRegion.findOne({
-                    where: { server_id: world.id, region_id: region.id },
-                });
+                for (const server of continent.servers) {
+                    let world: Mir4Server | null = await Mir4Server.findOne({ where: { name: server.name } });
 
-                if (!worldregion) {
-                    await Mir4ServerRegion.create({ server_id: world.id, region_id: region.id }).save();
+                    if (!world) {
+                        world = await Mir4Server.create({ name: server.name }).save();
+                    }
+
+                    const worldregion: Mir4ServerRegion | null = await Mir4ServerRegion.findOne({
+                        where: { server_id: world.id, region_id: region.id },
+                    });
+
+                    if (!worldregion) {
+                        await Mir4ServerRegion.create({ server_id: world.id, region_id: region.id }).save();
+                    }
                 }
             }
+        } catch (error) {
+            CLogger.error(`Fetch Continents Exception: ${error}`);
         }
 
         return continents;

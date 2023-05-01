@@ -38,6 +38,8 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
                 CLogger.info(`End > Retrieving Mir4 Leaderboard`);
             } catch (error) {
                 CLogger.error(`API Error > Retrieving Mir4 Leaderboard: (${error})`);
+            } finally {
+                await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
             }
         }, {
             scheduled: true,

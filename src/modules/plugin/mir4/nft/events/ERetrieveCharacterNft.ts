@@ -24,11 +24,21 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
      * @param {Client} client - The Discord client instance.
      */
     @On({ event: "ready" })
-    onReady([member]: ArgsOf<"ready">, client: Client): void {
+    async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
         if (HDiscordConfig.isLocalEnvironment()) return
+
+        await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "false")
         
         Cron.schedule("* * * * *", async () => {
             try {
+                const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.nft")
+                if (isRunning == "true") {
+                    CLogger.info(`End > Retrieving Character NFT is still running`);
+                    return
+                }
+
+                await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "true")
+
                 CLogger.info(`Start > Retrieving Character NFT`,);
                 await new CRetrieveCharacterNft(client).fetch({
                     listType: 'sale',
@@ -46,7 +56,9 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
                 CLogger.info(`End > Retrieving Character NFT`);
             } catch (error) {
                 CLogger.error(`Exception > Retrieving Character NFT`);
-            };
+            } finally {
+                await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "false")
+            }
         }, {
             scheduled: true,
             timezone: "Asia/Manila"
