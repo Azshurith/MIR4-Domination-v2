@@ -25,12 +25,12 @@ export abstract class ERetrieveServerMaintenance implements IOnReadyCron {
      */
     @On({ event: "ready" })
     async onReady([member]: ArgsOf<"ready">, client: Client): Promise<void> {
-        if (!HDiscordConfig.isLocalEnvironment()) return
+        if (HDiscordConfig.isLocalEnvironment()) return
 
         Cron.schedule("* * * * *", async () => {
             try {
                 CLogger.info(`Start > Retrieving MIR4 Maintenance Status`);
-                
+
                 const url: string = HDiscordConfig.loadEnv(`mir4.api.maintenance.status`)
 
                 await new RetrieveMaintenanceController(client).fetch({
