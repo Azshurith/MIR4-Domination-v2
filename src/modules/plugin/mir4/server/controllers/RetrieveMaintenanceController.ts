@@ -58,16 +58,6 @@ export default class RetrieveMaintenanceController implements APIController {
                     text: `${new Date()}`,
                     iconURL: "https://coinalpha.app/images/coin/1_20211022025215.png",
                 })
-                .setFields({
-                    name: `Start`,
-                    value: "```" + sdate + "```",
-                    inline: true
-                }, {
-                    name: `End`,
-                    value: "```" + edate + "```",
-                    inline: true
-                })
-
 
             switch (response.data.code) {
                 case 200:
@@ -84,10 +74,28 @@ export default class RetrieveMaintenanceController implements APIController {
                         embed.setTitle(`A new maintenance has been posted`)
                             .setDescription(`The maintenance schedule is updated. Check the latest news for more details.`)
                             .setColor(Colors.Yellow)
+                            .setFields({
+                                name: `Start`,
+                                value: "```" + sdate + "```",
+                                inline: true
+                            }, {
+                                name: `End`,
+                                value: "```" + edate + "```",
+                                inline: true
+                            })
                     } else if (response.data.code != maintenanceStatus) {
                         embed.setTitle(`The server maintenance has started`)
                             .setDescription(`Due to the ongoing maintenance activities, all game servers, including the NFT page, are temporarily unavailable.`)
                             .setColor(Colors.Red)
+                            .setFields({
+                                name: `Start`,
+                                value: "```" + sdate + "```",
+                                inline: true
+                            }, {
+                                name: `End`,
+                                value: "```" + edate + "```",
+                                inline: true
+                            })
                     } else {
                         return;
                     }
