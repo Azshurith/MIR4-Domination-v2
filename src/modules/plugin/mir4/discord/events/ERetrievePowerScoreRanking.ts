@@ -16,13 +16,13 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
         await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
 
         Cron.schedule("* * * * *", async () => {
-            try {
-                const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking")
-                if (isRunning == "true") {
-                    CLogger.info(`End > Retrieving Mir4 Leaderboard is still running`);
-                    return
-                }
+            const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking")
+            if (isRunning == "true") {
+                CLogger.info(`End > Retrieving Mir4 Leaderboard is still running`);
+                return
+            }
 
+            try {
                 await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "true")
 
                 CLogger.info(`Start > Retrieving Mir4 Leaderboard`);
@@ -39,6 +39,7 @@ export abstract class ERetrievePowerScoreRanking implements IOnReadyCron {
             } catch (error) {
                 CLogger.error(`API Error > Retrieving Mir4 Leaderboard: (${error})`);
             } finally {
+                CLogger.error(`1: Setting mir4.server.cron.ranking to false`);
                 await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
             }
         }, {

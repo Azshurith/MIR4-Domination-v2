@@ -116,6 +116,7 @@ export default class RetrievePowerScoreRankingController implements APIControlle
         } catch (error) {
             CLogger.error(`Fetch Server Promise All Exception: ${error}`);
         } finally {
+            CLogger.error(`2: Setting mir4.server.cron.ranking to false`);
             await HDiscordConfig.loadDbConfig("mir4.server.cron.ranking", "false")
         }
         CLogger.info(`End Fetching Servers`);

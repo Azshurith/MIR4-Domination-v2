@@ -30,13 +30,13 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
         await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "false")
         
         Cron.schedule("* * * * *", async () => {
-            try {
-                const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.nft")
-                if (isRunning == "true") {
-                    CLogger.info(`End > Retrieving Character NFT is still running`);
-                    return
-                }
+            const isRunning = await HDiscordConfig.loadDbConfig("mir4.server.cron.nft")
+            if (isRunning == "true") {
+                CLogger.info(`End > Retrieving Character NFT is still running`);
+                return
+            }
 
+            try {
                 await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "true")
 
                 CLogger.info(`Start > Retrieving Character NFT`,);
@@ -57,6 +57,7 @@ export abstract class ERetrieveCharacterNft implements IOnReadyCron {
             } catch (error) {
                 CLogger.error(`Exception > Retrieving Character NFT`);
             } finally {
+                CLogger.error(`1: Setting mir4.server.cron.nft to false`);
                 await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "false")
             }
         }, {

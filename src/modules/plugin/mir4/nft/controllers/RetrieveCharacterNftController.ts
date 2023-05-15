@@ -107,6 +107,7 @@ export default class RetrieveCharacterNftController implements APIController {
         } catch (error) {
             CLogger.error(`API Error > NFT List Request: (${error})`);
         } finally {
+            CLogger.error(`2: Setting mir4.server.cron.nft to false`);
             await HDiscordConfig.loadDbConfig("mir4.server.cron.nft", "false")
         }
     }
