@@ -103,16 +103,17 @@ export default class RetrievePowerScoreRankingController implements APIControlle
     async fetchServers(request: LeaderBoardRequest, continents: IContinent[]): Promise<void> {
         CLogger.info(`Start Fetching Servers`);
         try {
-            const fetchPromises = [];
+            // const fetchPromises = [];
             for (const continent of continents) {
                 CLogger.info(`Fetching Continent: ${continent.name}`);
                 for (const server of continent.servers) {
                     CLogger.info(`Fetching Server: ${server.name}`);
-                    fetchPromises.push(this.fetchServer(request, continent, server)); //REMOVE AWAIT
+                    // fetchPromises.push(this.fetchServer(request, continent, server)); //REMOVE AWAIT
+                    await this.fetchServer(request, continent, server);
                 }
             }
 
-            await Promise.all(fetchPromises);
+            // await Promise.all(fetchPromises);
         } catch (error) {
             CLogger.error(`Fetch Server Promise All Exception: ${error}`);
         } finally {
