@@ -126,7 +126,7 @@ export default class HTicketUtil {
             return;
         }
 
-        const discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator } });
+        const discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id } });
         if (!discordUser) {
             embed.setDescription(`Your account is not registered to our system.`)
             await interaction.editReply({ embeds: [embed] });

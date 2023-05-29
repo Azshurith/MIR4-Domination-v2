@@ -1,4 +1,3 @@
-
 import { Client } from "discordx";
 import { AttachmentBuilder, Colors, EmbedBuilder, Role, TextChannel } from "discord.js";
 import { ServerMaintenanceDateResponse, ServerMaintenanceResponse } from "../interface/IRetrieveServerMaintenance";
@@ -68,6 +67,15 @@ export default class RetrieveMaintenanceController implements APIController {
                     embed.setTitle(`The server maintenance has ended`)
                         .setDescription(`The maintenance procedures have been completed, and the game servers are now up and running!`)
                         .setColor(Colors.Green)
+						.setFields({
+							name: `Start`,
+							value: "```" + sdate + "```",
+							inline: true
+						}, {
+							name: `End`,
+							value: "```" + edate + "```",
+							inline: true
+						})
                     break;
                 default:
                     if (response.data.code == maintenanceStatus && (maintenanceStart != sdate || maintenanceEnd != edate)) {

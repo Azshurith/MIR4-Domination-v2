@@ -47,7 +47,7 @@ export async function NotLinked(interaction: CommandInteraction, client: Client,
         return;
     }
 
-    let discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator } });
+    let discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id } });
     if (!discordUser) {
         embed.setDescription(`Your account is not registered to our system.`)
         await interaction.editReply({ embeds: [embed] });
