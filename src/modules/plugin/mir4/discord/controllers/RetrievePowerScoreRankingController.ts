@@ -263,11 +263,11 @@ export default class RetrievePowerScoreRankingController implements APIControlle
      * @returns A promise that resolves with an array of IContinent objects representing the continents and their servers.
      */
     async fetchContinents(url: string): Promise<IContinent[]> {
-        const response: AxiosResponse<any> = await axios.get<any>(url);
-        const $: cheerio.CheerioAPI = cheerio.load(response.data);
-        const continents: IContinent[] = [];
-
         try {
+            const response: AxiosResponse<any> = await axios.get<any>(url);
+            const $: cheerio.CheerioAPI = cheerio.load(response.data);
+            const continents: IContinent[] = [];
+
             $('ul li').each((i: number, li: any) => {
                 const a: any = $(li).find('a');
                 const match: RegExpMatchArray | null = a.attr('href')?.match(/set_world\('(\d+)',\s*'(.+)',\s*'(\d+)',\s*'(.+)'\)/);
