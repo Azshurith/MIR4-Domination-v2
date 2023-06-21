@@ -92,7 +92,7 @@ export default class AccountTicketController implements APIController {
 
         let discordUser: DiscordUser | null = await DiscordUser.findOne({ where: { discord_id: interaction.member.user.id } });
         if (!discordUser) {
-            discordUser = await DiscordUser.create({ username: interaction.member.user.username, discord_id: interaction.member.user.id, discriminator: interaction.member.user.discriminator }).save();
+            discordUser = await DiscordUser.create({ username: interaction.member.user.username, discord_id: interaction.member.user.id }).save();
         }
 
         let characterDiscord: Mir4CharacterDiscord | null = await Mir4CharacterDiscord.findOne({ where: { discord_id: discordUser.id, is_unlink: false } });

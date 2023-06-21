@@ -54,14 +54,6 @@ export class DiscordUser extends BaseEntity {
     username!: string
 
     /**
-     * The discriminator of the Discord User
-     * 
-     * @type {string}
-     */
-    @Column({ nullable: false, unique: true, comment: `Discord Discriminator` })
-    discriminator!: string
-
-    /**
      * The timestamp when the Server was created
      * 
      * @type {Date}
