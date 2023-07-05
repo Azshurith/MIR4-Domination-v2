@@ -158,7 +158,7 @@ export default class RetrieveSteamPostController implements APIController {
             const now: Date = new Date();
             channel.guild.scheduledEvents.create({
                 name: news.title,
-                scheduledStartTime: now.setMinutes(now.getMinutes() + 5),
+                scheduledStartTime: now.setMinutes(now.getMinutes() + 30),
                 scheduledEndTime: new Date(date.getFullYear(), date.getMonth() + 1, 0),
                 privacyLevel: 2,
                 entityType: 3,
