@@ -1,8 +1,5 @@
 import { ApplicationCommandOptionType, AttachmentBuilder, ChannelType, Colors, CommandInteraction, EmbedBuilder, GuildMember, GuildMemberRoleManager, Role } from "discord.js"
 import { Discord, Guard, Slash, SlashGroup, SlashOption } from "discordx"
-import CLogger from "../../../../core/interface/utilities/logger/controllers/CLogger.js";
-import RetrievePowerScoreRankingController from "../controllers/RetrievePowerScoreRankingController.js";
-import HDiscordConfig from "../../../../core/helpers/HDiscordConfig.js";
 import { NotLinked } from "../guards/NotLinked.js";
 import HDiscordBot from "../../../../core/helpers/HDiscordBot.js";
 import { DiscordUser } from "../../../../core/models/User.js";
