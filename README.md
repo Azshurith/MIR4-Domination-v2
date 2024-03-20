@@ -37,6 +37,9 @@ The bot is designed to be easy to use, so you can quickly get the information yo
 
 Get started with the MIR4 Domination Bot today and take your gaming experience to the next level!
 
+<img src="https://github.com/Azshurith/MIR4-Domination-v2/blob/main/Page%201.png?raw=true"/>
+<img src="https://github.com/Azshurith/MIR4-Domination-v2/blob/main/Page%202.png?raw=true"/>
+
 ## 💻 Usage
 
 > **Note:** Create a pull request to the module tha you wanted to install
